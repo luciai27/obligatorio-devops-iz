@@ -1,4 +1,4 @@
-name: Email on Pull Request to main, test, or dev
+name: Evio de correo en Pull Request to main, test, or dev
 
 on:
   pull_request:
@@ -7,6 +7,8 @@ on:
       - test
       - dev
     types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
 
 env:
   EMAIL_USER: ${{ secrets.EMAIL_USER }}
