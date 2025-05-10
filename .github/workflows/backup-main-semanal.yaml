@@ -3,7 +3,7 @@ name: Respaldo de la rama main Semanalmente en S3 Aws
 on:
   push:
     branches:
-      - Dev
+      - main
   schedule:
     - cron: '0 1 * * 2'  # Todos los martes a las 03:00 UTC
   workflow_dispatch:   
