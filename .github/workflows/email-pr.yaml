@@ -9,10 +9,10 @@ on:
     types: [opened, reopened, synchronize]
   workflow_dispatch:
 
-
 env:
   EMAIL_USER: ${{ secrets.EMAIL_USER }}
   EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+  REPO_OWNER_EMAIL: ${{ secrets.REPO_OWNER_EMAIL }}
 
 jobs:
   send-email:
@@ -22,7 +22,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0   
+          fetch-depth: 0
 
       - name: Fetch and get changed files
         id: changed
@@ -35,23 +35,22 @@ jobs:
 
       - name: Generate email body
         run: |
-          echo "BODY<<EOF" >> $GITHUB_ENV
-          echo "🚀 A pull request targeting the \`${{ github.base_ref }}\` branch has been created or updated." >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "🔹 **Title**: ${{ github.event.pull_request.title }}" >> $GITHUB_ENV
-          echo "🔗 **URL**: ${{ github.event.pull_request.html_url }}" >> $GITHUB_ENV
-          echo "👤 **Author**: ${{ github.event.pull_request.user.login }}" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "📄 **Files changed:**" >> $GITHUB_ENV
-          echo "${{ steps.changed.outputs.files }}" >> $GITHUB_ENV
-          echo "" >> $GITHUB_ENV
-          echo "📊 **Stats**: +${{ github.event.pull_request.additions }} / -${{ github.event.pull_request.deletions }}" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          echo "🚀 A pull request targeting the \`${{ github.base_ref }}\` branch has been created or updated." > body.txt
+          echo "" >> body.txt
+          echo "🔹 **Title**: ${{ github.event.pull_request.title }}" >> body.txt
+          echo "🔗 **URL**: ${{ github.event.pull_request.html_url }}" >> body.txt
+          echo "👤 **Author**: ${{ github.event.pull_request.user.login }}" >> body.txt
+          echo "" >> body.txt
+          echo "📄 **Files changed:**" >> body.txt
+          echo "${{ steps.changed.outputs.files }}" >> body.txt
+          echo "" >> body.txt
+          echo "📊 **Stats**: +${{ github.event.pull_request.additions }} / -${{ github.event.pull_request.deletions }}" >> body.txt
 
-      - name: Get contributor emails
+      - name: Get contributor emails including repo owner
         id: contributors
         run: |
-          EMAILS=$(git log --format='%ae' origin/${{ github.base_ref }}...${{ github.sha }} | sort | uniq | paste -sd "," -)
+          COMMITTER_EMAILS=$(git log --format='%ae' origin/${{ github.base_ref }}...${{ github.sha }})
+          EMAILS=$(echo -e "${{ env.REPO_OWNER_EMAIL }}\n$COMMITTER_EMAILS" | sort | uniq | paste -sd "," -)
           echo "emails=$EMAILS" >> $GITHUB_OUTPUT
 
       - name: Send Email Notification
@@ -62,7 +61,6 @@ jobs:
           username: ${{ env.EMAIL_USER }}
           password: ${{ env.EMAIL_PASS }}
           subject: "🚨 PR to ${{ github.base_ref }} - ${{ github.event.pull_request.title }}"
-          body: ${{ env.BODY }}
+          body: file://body.txt
           to: ${{ steps.contributors.outputs.emails }}
           from: GitHub Actions <${{ env.EMAIL_USER }}>
-
