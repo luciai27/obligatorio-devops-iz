@@ -1,4 +1,4 @@
-name: Evio de correo en Pull Request to main, test, or dev
+name: Envio de correo en Pull Request to main, test, or dev
 
 on:
   pull_request:
