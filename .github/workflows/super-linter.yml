@@ -1,0 +1,26 @@
+name: Lint Check (HTML, CSS, YAML, Docker)
+
+on:
+  push:
+    branches: [main, dev, test]
+  pull_request:
+    branches: [main, dev, test]
+
+jobs:
+  lint:
+    name: Run Super-Linter
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Super-Linter
+      uses: github/super-linter/slim@v5
+      env:
+        DEFAULT_BRANCH: main
+        VALIDATE_HTML: true
+        VALIDATE_CSS: true
+        VALIDATE_YAML: true
+        VALIDATE_DOCKERFILE_HADOLINT: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
