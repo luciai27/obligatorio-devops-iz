@@ -1,0 +1,66 @@
+name: Envio de correo en Pull Request to main, test, or dev
+
+on:
+  pull_request:
+    branches:
+      - main
+      - test
+      - dev
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+env:
+  EMAIL_USER: ${{ secrets.EMAIL_USER }}
+  EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+  REPO_OWNER_EMAIL: ${{ secrets.REPO_OWNER_EMAIL }}
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Fetch and get changed files
+        id: changed
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...${{ github.sha }})
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate email body
+        run: |
+          echo "🚀 A pull request targeting the \`${{ github.base_ref }}\` branch has been created or updated." > body.txt
+          echo "" >> body.txt
+          echo "🔹 **Title**: ${{ github.event.pull_request.title }}" >> body.txt
+          echo "🔗 **URL**: ${{ github.event.pull_request.html_url }}" >> body.txt
+          echo "👤 **Author**: ${{ github.event.pull_request.user.login }}" >> body.txt
+          echo "" >> body.txt
+          echo "📄 **Files changed:**" >> body.txt
+          echo "${{ steps.changed.outputs.files }}" >> body.txt
+          echo "" >> body.txt
+          echo "📊 **Stats**: +${{ github.event.pull_request.additions }} / -${{ github.event.pull_request.deletions }}" >> body.txt
+
+      - name: Get contributor emails including repo owner
+        id: contributors
+        run: |
+          COMMITTER_EMAILS=$(git log --format='%ae' origin/${{ github.base_ref }}...${{ github.sha }})
+          EMAILS=$(echo -e "${{ env.REPO_OWNER_EMAIL }}\n$COMMITTER_EMAILS" | sort | uniq | paste -sd "," -)
+          echo "emails=$EMAILS" >> $GITHUB_OUTPUT
+
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ env.EMAIL_USER }}
+          password: ${{ env.EMAIL_PASS }}
+          subject: "🚨 PR to ${{ github.base_ref }} - ${{ github.event.pull_request.title }}"
+          body: file://body.txt
+          to: ${{ steps.contributors.outputs.emails }}
+          from: GitHub Actions <${{ env.EMAIL_USER }}>
