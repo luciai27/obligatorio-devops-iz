@@ -54,7 +54,7 @@ jobs:
           echo "emails=$EMAILS" >> $GITHUB_OUTPUT
 
       - name: Send Email Notification
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v5
         with:
           server_address: smtp.gmail.com
           server_port: 587
