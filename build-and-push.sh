@@ -14,8 +14,8 @@ case "$BRANCH_NAME" in
   dev)
     BRANCH_TAG="dev"
     ;;
-  staging)
-    BRANCH_TAG="staging"
+  test)
+    BRANCH_TAG="test"
     ;;
   main | master)
     BRANCH_TAG="prod"
