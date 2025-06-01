@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-AWS_REGION="us-east-1"  # Cambia esto
+AWS_REGION="us-east-1"  # Cambia esto si es necesario
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ECR_BASE_URL="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 
@@ -14,20 +14,22 @@ case "$BRANCH_NAME" in
   dev)
     BRANCH_TAG="dev"
     ;;
-  test)
-    BRANCH_TAG="test"
+  staging)
+    BRANCH_TAG="staging"
     ;;
   main | master)
     BRANCH_TAG="prod"
     ;;
   *)
-    echo "❌ Rama '$BRANCH_NAME' no válida para tagging. Usá solo 'dev', 'test', o 'main'."
+    echo "❌ Rama '$BRANCH_NAME' no válida para tagging. Usá solo 'dev', 'staging' o 'main'."
     exit 1
     ;;
 esac
 
+TAG_COMBINADO="$BRANCH_TAG-$COMMIT_HASH"
+
 echo "🌿 Rama: $BRANCH_NAME"
-echo "🔖 Tag rama: $BRANCH_TAG"
+echo "🔖 Tag combinado: $TAG_COMBINADO"
 echo "🔨 Commit: $COMMIT_HASH"
 
 echo "🔐 Login ECR..."
@@ -48,8 +50,7 @@ for SERVICE in "${SERVICES[@]}"; do
     echo "✅ Repositorio $ECR_REPO existe."
   fi
 
-  # Tags
-  TAGS=("$BRANCH_TAG" "$COMMIT_HASH")
+  TAGS=("$TAG_COMBINADO")
   if [[ "$BRANCH_TAG" == "prod" ]]; then
     TAGS+=("latest")
   fi
