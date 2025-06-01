@@ -22,7 +22,7 @@ jobs:
         #  role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # opcional si usás roles
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-sesion-token: ${{ secrets.AWS_SESSION_TOKEN }} # opcional si usás session tokens
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }} # opcional si usás session tokens
 
       - name: Login to Amazon ECR
         id: login-ecr
