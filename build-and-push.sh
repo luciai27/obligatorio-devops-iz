@@ -68,3 +68,89 @@ for SERVICE in "${SERVICES[@]}"; do
 done
 
 echo "🏁 Proceso terminado."
+
+# ----------------------------
+# 🧱 Generar docker-compose.<env>.yml
+# ----------------------------
+
+COMPOSE_FILE="docker-compose.generated.${BRANCH_TAG}.yml"
+TAG="${BRANCH_TAG}-${COMMIT_HASH}"
+
+echo "📝 Generando $COMPOSE_FILE con tag $TAG..."
+
+cat > "$COMPOSE_FILE" <<EOF
+version: "3.8"
+
+services:
+  vote:
+    image: $ECR_BASE_URL/voting-app/vote:$TAG
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    ports:
+      - "8080:80"
+    networks:
+      - front-tier
+      - back-tier
+
+  result:
+    image: $ECR_BASE_URL/voting-app/result:$TAG
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:80"
+    networks:
+      - front-tier
+      - back-tier
+
+  worker:
+    image: $ECR_BASE_URL/voting-app/worker:$TAG
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - back-tier
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - "./healthchecks:/healthchecks"
+    healthcheck:
+      test: /healthchecks/redis.sh
+      interval: "5s"
+    networks:
+      - back-tier
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    volumes:
+      - "db-data:/var/lib/postgresql/data"
+      - "./healthchecks:/healthchecks"
+    healthcheck:
+      test: /healthchecks/postgres.sh
+      interval: "5s"
+    networks:
+      - back-tier
+
+volumes:
+  db-data:
+
+networks:
+  front-tier:
+  back-tier:
+EOF
+
+echo "✅ $COMPOSE_FILE generado con éxito."
+echo "🚀 Listo para desplegar con 'docker-compose -f $COMPOSE_FILE up -d'"
