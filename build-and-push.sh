@@ -122,11 +122,11 @@ services:
 
   redis:
     image: redis:alpine
-    volumes:
-      - "./healthchecks:/healthchecks"
     healthcheck:
-      test: /healthchecks/redis.sh
-      interval: "5s"
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - back-tier
 
@@ -135,12 +135,11 @@ services:
     environment:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
-    volumes:
-      - "db-data:/var/lib/postgresql/data"
-      - "./healthchecks:/healthchecks"
     healthcheck:
-      test: /healthchecks/postgres.sh
-      interval: "5s"
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - back-tier
 
@@ -153,7 +152,12 @@ networks:
 EOF
 
 echo "✅ $COMPOSE_FILE generado con éxito."
-echo "🚀 Listo para desplegar con 'docker-compose -f $COMPOSE_FILE up -d'"
+echo "🚀 Listo para desplegar con: docker compose -f $COMPOSE_FILE up -d"
+
+
+
+
+# Subir docker-compose a S3
 
 S3_BUCKET="ob-iztest2"
 S3_KEY="docker-compose/$COMPOSE_FILE"
