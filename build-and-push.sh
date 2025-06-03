@@ -154,3 +154,10 @@ EOF
 
 echo "✅ $COMPOSE_FILE generado con éxito."
 echo "🚀 Listo para desplegar con 'docker-compose -f $COMPOSE_FILE up -d'"
+
+S3_BUCKET="ob-iztest2"
+S3_KEY="docker-compose/$COMPOSE_FILE"
+
+echo "☁️ Subiendo $COMPOSE_FILE a S3 (s3://$S3_BUCKET/$S3_KEY)..."
+aws s3 cp "$COMPOSE_FILE" "s3://$S3_BUCKET/$S3_KEY" --region $AWS_REGION
+echo "✅ Archivo subido a S3."
