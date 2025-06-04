@@ -1,0 +1,72 @@
+name: Terraform Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Ambiente a desplegar"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+
+jobs:
+  terraform:
+    name: "Terraform Apply - ${{ github.event.inputs.environment }}"
+    runs-on: ubuntu-latest
+    env:
+      ENV: ${{ github.event.inputs.environment }}
+      AWS_REGION: us-east-1
+    steps:
+      - name: 🧾 Checkout código
+        uses: actions/checkout@v4
+
+      - name: 🪪 Configurar credenciales AWS
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+        run: |
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN" >> $GITHUB_ENV
+
+      - name: 🧱 Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: 🔍 Terraform Init
+        run: terraform init
+
+      - name: 🔍 Terraform Plan
+        run: terraform plan -var="environment=$ENV" -out=tfplan
+
+      - name: 🚀 Terraform Apply (solo si hay cambios)
+        run: |
+          if terraform show -json tfplan | jq -e '.resource_changes | length > 0'; then
+            terraform apply -auto-approve tfplan
+          else
+            echo "No hay cambios. Saltando apply."
+          fi
+
+#      - name: 📧 Notificación por email
+#        if: success()
+#        uses: dawidd6/action-send-mail@v3
+ #       with:
+ #         server_address: smtp.gmail.com
+ #         server_port: 587
+ #         username: ${{ secrets.SMTP_USERNAME }}
+ #         password: ${{ secrets.SMTP_PASSWORD }}
+ #         subject: "✅ Terraform Deploy OK - ${{ github.event.inputs.environment }}"
+ #         to: |
+ #           ${{ secrets.NOTIFY_EMAILS }}
+ #         from: "InfraBot <${{ secrets.SMTP_USERNAME }}>"
+ #         body: |
+ #           La infraestructura para el ambiente **${{ github.event.inputs.environment }}** se desplegó correctamente en AWS mediante Terraform 🚀
+ #           Repositorio: ${{ github.repository }}
+ #           Ejecutado por: ${{ github.actor }}
+
