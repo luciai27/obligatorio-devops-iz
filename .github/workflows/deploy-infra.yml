@@ -25,38 +25,38 @@ jobs:
     env:
       ENV: ${{ github.event.inputs.environment }}
       AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
     steps:
       - name: 🧾 Checkout código
         uses: actions/checkout@v4
-
-      - name: 🪪 Configurar credenciales AWS
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
-        run: |
-          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
-          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
-          echo "AWS_SESSION_TOKEN=$AWS_SESSION_TOKEN" >> $GITHUB_ENV
 
       - name: 🧱 Instalar Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.5.7
 
+      - name: 📦 Instalar jq
+        run: sudo apt-get install -y jq
+
       - name: 🔍 Terraform Init
         run: terraform init
+        working-directory: infra
 
       - name: 🔍 Terraform Plan
         run: terraform plan -var="environment=$ENV" -out=tfplan
+        working-directory: infra
 
       - name: 🚀 Terraform Apply (solo si hay cambios)
         run: |
           if terraform show -json tfplan | jq -e '.resource_changes | length > 0'; then
             terraform apply -auto-approve tfplan
           else
-            echo "No hay cambios. Saltando apply."
+            echo "✅ No hay cambios. Saltando apply."
           fi
+        working-directory: infra
 
 #      - name: 📧 Notificación por email
 #        if: success()
