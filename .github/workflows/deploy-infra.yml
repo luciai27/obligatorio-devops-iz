@@ -56,20 +56,13 @@ jobs:
         with:
           terraform_version: 1.5.7
 
-      - name: 🧾 Validar y copiar backend.tf
-        run: |
-          BACKEND_FILE="infra/backend-${ENV}.tf"
-          if [ -f "$BACKEND_FILE" ]; then
-            cp "$BACKEND_FILE" infra/backend.tf
-          else
-            echo "❌ No existe el archivo $BACKEND_FILE"
-            exit 1
-          fi
-
 
       - name: Init Terraform
         working-directory: infra
-        run: terraform init
+        run: terraform init \
+          -backend-config="bucket=votting-app-terraform-states" \
+          -backend-config="region=us-east-1" \
+          -backend-config="key=infra/${{ env.ENV }}.tfstate"
 
 
       - name: Plan Terraform
