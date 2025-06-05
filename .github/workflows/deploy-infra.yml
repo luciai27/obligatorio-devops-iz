@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
-      ENV: ${{ github.event.inputs.environment }}
+      
 
     steps:
       - name: Checkout código
@@ -56,13 +56,6 @@ jobs:
         working-directory: infra
         run: terraform apply -auto-approve tfplan
 
-      - name: 📬 Obtener emails de los committers
-        id: committers
-        run: |
-          COMMITTER_EMAILS=$(git log --format='%ae' ${{ github.event.before }}..${{ github.sha }})
-          EMAILS=$(echo -e "$COMMITTER_EMAILS" | sort | uniq | paste -sd "," -)
-          echo "emails=$EMAILS" >> $GITHUB_OUTPUT
-
 
       - name: 📧 Notificación por email
         if: success()
@@ -73,8 +66,7 @@ jobs:
           username: ${{ secrets.SMTP_USERNAME }}
           password: ${{ secrets.SMTP_PASSWORD }}
           subject: "✅ Terraform Deploy OK - ${{ env.ENV }}"
-          to: |
-            ${{ steps.committers.outputs.emails }},${{ secrets.REPO_OWNER_MAIL }}
+          to: ${{ secrets.REPO_OWNER_MAIL }}
           from: "InfraBot <${{ secrets.SMTP_USERNAME }}>"
           body: |
             La infraestructura para el ambiente **${{ env.ENV }}** se desplegó correctamente en AWS mediante Terraform 🚀
