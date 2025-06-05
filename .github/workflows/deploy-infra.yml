@@ -56,13 +56,13 @@ jobs:
         with:
           terraform_version: 1.5.7
 
+      - name: 🔀 Seleccionar backend por ambiente
+        run: cp "backend-${ENV}.tf" backend.tf
+
       - name: Init Terraform
         working-directory: infra
-        run: |
-          terraform init \
-            -backend-config="bucket=votting-app-terraform-states" \
-            -backend-config="region=us-east-1" \
-            -backend-config="key=infra/${{ github.event.inputs.environment  }}.tfstate"
+        run: terafoorm init
+        
 
       - name: Plan Terraform
         working-directory: infra
