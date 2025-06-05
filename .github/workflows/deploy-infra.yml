@@ -56,8 +56,15 @@ jobs:
         with:
           terraform_version: 1.5.7
 
-      - name: 🧠 Seleccionar backend.tf por entorno
-        run: cp "infra/backend-${{ github.event.inputs.environment }}.tf" infra/backend.tf
+      - name: 🧾 Validar y copiar backend.tf
+        run: |
+          BACKEND_FILE="infra/backend-${ENV}.tf"
+          if [ -f "$BACKEND_FILE" ]; then
+            cp "$BACKEND_FILE" infra/backend.tf
+          else
+            echo "❌ No existe el archivo $BACKEND_FILE"
+            exit 1
+          fi
 
 
       - name: Init Terraform
