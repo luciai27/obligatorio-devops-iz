@@ -56,25 +56,27 @@ jobs:
         working-directory: infra
         run: terraform apply -auto-approve tfplan
 
-      - name: Get contributor emails including repo owner
-        id: contributors
+      - name: 📬 Obtener emails de los committers
+        id: committers
         run: |
-          COMMITTER_EMAILS=$(git log --format='%ae' origin/${{ github.base_ref }}...${{ github.sha }})
-          EMAILS=$(echo -e "${{ env.REPO_OWNER_EMAIL }}\n$COMMITTER_EMAILS" | sort | uniq | paste -sd "," -)
+          COMMITTER_EMAILS=$(git log --format='%ae' ${{ github.event.before }}..${{ github.sha }})
+          EMAILS=$(echo -e "$COMMITTER_EMAILS" | sort | uniq | paste -sd "," -)
           echo "emails=$EMAILS" >> $GITHUB_OUTPUT
 
-      - name: Enviar email de confirmación
+
+      - name: 📧 Notificación por email
         if: success()
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 587
-          username: ${{ secrets.EMAIL_USER}}
-          password: ${{ secrets.EMAIL_PASS }}
-          subject: "✅ Terraform deploy: ${{ github.event.inputs.environment }}"
-          to: ${{ steps.contributors.outputs.emails }}
-          from: "InfraBot <${{ secrets.EMAIL_USER }}>"
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "✅ Terraform Deploy OK - ${{ env.ENV }}"
+          to: |
+            ${{ steps.committers.outputs.emails }},${{ secrets.REPO_OWNER_MAIL }}
+          from: "InfraBot <${{ secrets.SMTP_USERNAME }}>"
           body: |
-            ✅ La infraestructura del ambiente **${{ github.event.inputs.environment }}** fue desplegada correctamente.
+            La infraestructura para el ambiente **${{ env.ENV }}** se desplegó correctamente en AWS mediante Terraform 🚀
             Repositorio: ${{ github.repository }}
             Ejecutado por: ${{ github.actor }}
