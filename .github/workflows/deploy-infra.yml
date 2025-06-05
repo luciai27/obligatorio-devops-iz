@@ -58,7 +58,11 @@ jobs:
 
       - name: Init Terraform
         working-directory: infra
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=mi-bucket-de-tfstate" \
+            -backend-config="region=us-east-1" \
+            -backend-config="key=infra/${{ env.ENV }}.tfstate"
 
       - name: Plan Terraform
         working-directory: infra
