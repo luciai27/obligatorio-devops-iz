@@ -56,13 +56,14 @@ jobs:
         with:
           terraform_version: 1.5.7
 
-      - name: 🔀 Seleccionar backend por ambiente
-        run: cp "backend-${ENV}.tf" backend.tf
+      - name: 🧠 Seleccionar backend.tf por entorno
+        run: cp "infra/backend-${{ github.event.inputs.environment }}.tf" infra/backend.tf
+
 
       - name: Init Terraform
         working-directory: infra
         run: terafoorm init
-        
+
 
       - name: Plan Terraform
         working-directory: infra
