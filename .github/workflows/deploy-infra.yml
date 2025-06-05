@@ -24,11 +24,22 @@ jobs:
     runs-on: ubuntu-latest
     env:
       AWS_REGION: us-east-1
-      ENV: ${{ github.event.inputs.environment }}
 
     steps:
       - name: Checkout código
         uses: actions/checkout@v4
+
+      - name: Seteo de variable de ambiente
+        run: |
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            echo "ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "test" ]]; then
+            echo "ENV=test" >> $GITHUB_ENV
+          else
+            echo "ENV=dev" >> $GITHUB_ENV
+          fi
 
       - name: Setear credenciales AWS
         env:
