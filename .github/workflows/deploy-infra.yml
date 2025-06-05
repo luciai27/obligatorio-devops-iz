@@ -66,7 +66,7 @@ jobs:
 
       - name: Plan Terraform
         working-directory: infra
-        run: terraform plan -var="environment=$ENV" -var="aws_region=$AWS_REGION" -out=tfplan
+        run: terraform plan -var="environment=$ENV" -var="aws_region=$AWS_REGION" -out=tfplan -lock=false
 
       - name: Apply Terraform
         working-directory: infra
