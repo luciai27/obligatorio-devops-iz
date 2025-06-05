@@ -75,11 +75,11 @@ jobs:
         with:
           server_address: smtp.gmail.com
           server_port: 587
-          username: ${{ secrets.SMTP_USERNAME }}
-          password: ${{ secrets.SMTP_PASSWORD }}
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
           subject: "✅ Terraform Deploy OK - ${{ env.ENV }}"
           to: ${{ secrets.REPO_OWNER_MAIL }}
-          from: "InfraBot <${{ secrets.SMTP_USERNAME }}>"
+          from: "InfraBot <${{ secrets.EMAIL_USER }}>"
           body: |
             La infraestructura para el ambiente **${{ env.ENV }}** se desplegó correctamente en AWS mediante Terraform 🚀
             Repositorio: ${{ github.repository }}
