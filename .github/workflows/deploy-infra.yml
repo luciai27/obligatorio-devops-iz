@@ -70,7 +70,7 @@ jobs:
 
       - name: Apply Terraform
         working-directory: infra
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve tfplan -lock=false
 
 
       - name: 📧 Notificación por email
