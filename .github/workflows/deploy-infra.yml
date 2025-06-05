@@ -30,6 +30,18 @@ jobs:
       - name: Checkout código
         uses: actions/checkout@v4
 
+      - name: Seteo de variable de ambienteAdd commentMore actions
+        run: |
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            echo "ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "test" ]]; then
+            echo "ENV=test" >> $GITHUB_ENV
+          else
+            echo "ENV=dev" >> $GITHUB_ENV
+          fi
+          
       - name: Setear credenciales AWS
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
