@@ -6,7 +6,7 @@ provider "aws" {
 resource "aws_vpc" "main" {
   cidr_block = "192.168.0.0/16"
   tags = {
-    Name = "vpc-${var.environment}"
+    Name = "vpc-Votting-App"
   }
 }
 
@@ -14,7 +14,7 @@ resource "aws_vpc" "main" {
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
   tags = {
-    Name = "igw-${var.environment}"
+    Name = "igw-Votting-App"
   }
 }
 
@@ -53,7 +53,7 @@ resource "aws_subnet" "test" {
 resource "aws_route_table" "main" {
   vpc_id = aws_vpc.main.id
   tags = {
-    Name = "rt-${var.environment}"
+    Name = "rt-Votting-App"
   }
 
   route {
