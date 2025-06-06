@@ -1,0 +1,87 @@
+name: Terraform Deploy
+
+on:
+  push:
+    branches:
+      - dev
+      - test
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Ambiente a desplegar"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - test
+          - prod
+
+jobs:
+  terraform:
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Seteo de variable de ambienteAdd commentMore actions
+        run: |
+          if [ -n "${{ github.event.inputs.environment }}" ]; then
+            echo "ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "ENV=prod" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "test" ]]; then
+            echo "ENV=test" >> $GITHUB_ENV
+          else
+            echo "ENV=dev" >> $GITHUB_ENV
+          fi
+          
+      - name: Setear credenciales AWS
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> $GITHUB_ENV
+          echo "AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}" >> $GITHUB_ENV
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+
+      - name: Init Terraform
+        working-directory: infra
+        run: terraform init -backend-config="bucket=votting-app-terraform-states" -backend-config="region=us-east-1" -backend-config="key=infra/voting-App.tfstate"
+
+      - name: Plan Terraform
+        working-directory: infra
+        run: terraform plan -var="environment=$ENV" -var="aws_region=$AWS_REGION" -out=tfplan -lock=false
+
+      - name: Apply Terraform
+        working-directory: infra
+        run: terraform apply -auto-approve -lock=false tfplan
+
+
+      - name: 📧 Notificación por email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: "✅ Terraform Deploy OK - ${{ env.ENV }}"
+          to: ${{ secrets.REPO_OWNER_MAIL }}
+          from: "InfraBot <${{ secrets.EMAIL_USER }}>"
+          body: |
+            La infraestructura para el ambiente **${{ env.ENV }}** se desplegó correctamente en AWS mediante Terraform 🚀
+            Repositorio: ${{ github.repository }}
+            Ejecutado por: ${{ github.actor }}

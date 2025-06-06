@@ -68,3 +68,100 @@ for SERVICE in "${SERVICES[@]}"; do
 done
 
 echo "🏁 Proceso terminado."
+
+# ----------------------------
+# 🧱 Generar docker-compose.<env>.yml
+# ----------------------------
+
+COMPOSE_FILE="docker-compose.generated.${BRANCH_TAG}.yml"
+TAG="${BRANCH_TAG}-${COMMIT_HASH}"
+
+echo "📝 Generando $COMPOSE_FILE con tag $TAG..."
+
+cat > "$COMPOSE_FILE" <<EOF
+version: "3.8"
+
+services:
+  vote:
+    image: $ECR_BASE_URL/voting-app/vote:$TAG
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    ports:
+      - "8080:80"
+    networks:
+      - front-tier
+      - back-tier
+
+  result:
+    image: $ECR_BASE_URL/voting-app/result:$TAG
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:80"
+    networks:
+      - front-tier
+      - back-tier
+
+  worker:
+    image: $ECR_BASE_URL/voting-app/worker:$TAG
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+    networks:
+      - back-tier
+
+  redis:
+    image: redis:alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - back-tier
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - back-tier
+
+volumes:
+  db-data:
+
+networks:
+  front-tier:
+  back-tier:
+EOF
+
+echo "✅ $COMPOSE_FILE generado con éxito."
+echo "🚀 Listo para desplegar con: docker compose -f $COMPOSE_FILE up -d"
+
+
+
+
+# Subir docker-compose a S3
+
+S3_BUCKET="ob-iztest2"
+S3_KEY="docker-compose/$COMPOSE_FILE"
+
+echo "☁️ Subiendo $COMPOSE_FILE a S3 (s3://$S3_BUCKET/$S3_KEY)..."
+aws s3 cp "$COMPOSE_FILE" "s3://$S3_BUCKET/$S3_KEY" --region $AWS_REGION
+echo "✅ Archivo subido a S3."
