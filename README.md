@@ -84,6 +84,35 @@ Componentes:
    - Se actualiza el archivo `docker-compose.generated.yml` con el tag generado
    - El archivo `docker-compose.generated.yml` se sube a un bucket S3
 
+🛠️ Diagrama de Flujo - Build & Push a ECR (Voting App)
+```text
+Inicio
+└── 🔹 Push a rama (dev, test, main)
+    └── 🟩 Determinar entorno
+        ├── dev → entorno desarrollo
+        ├── test → entorno testing
+        └── main → entorno producción
+            └── 🟨 Login a AWS/ECR
+                ├── aws ecr get-login-password
+                └── docker login con el token generado
+                    └── 🟧 Generar tag único
+                        ├── Obtener hash corto del commit (GIT_COMMIT)
+                        └── Formato: voting-app:<ambiente>-<GIT_COMMIT>
+                            └── 🟦 Construcción de imagen
+                                └── docker build -t voting-app:<tag> .
+                                    └── 🟩 Subir imagen a ECR
+                                        ├── docker tag → apuntar al repo ECR
+                                        └── docker push → subir imagen
+                                            └── 📝 Actualizar archivo docker-compose.generated.yml
+                                                ├── Reemplazar tag de imagen
+                                                └── Guardar archivo actualizado
+                                                    └── ✅ Fin
+                                                        ├── Imagen disponible en ECR
+                                                        └── Archivo listo para despliegue
+
+
+```
+
 2. **Terraform Deploy**
    - Se ejecuta Terraform desde GitHub Actions apuntando al ambiente correspondiente:
      - `dev` → subnet `192.168.2.0/24` + pública `192.168.12.0/24`
