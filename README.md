@@ -15,9 +15,7 @@ Entornos bien definidos y separados
 El proyecto tiene ramas dev, test y main (prod), lo cual se alinea muy bien con GitFlow. Cada rama puede representar un entorno estable:
 
 develop (para desarrollo),
-
 test (preparación y validación),
-
 main (versión estable y en producción).
 
 Control sobre versiones y despliegues
