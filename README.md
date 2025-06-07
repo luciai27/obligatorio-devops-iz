@@ -16,7 +16,7 @@ La estrategia elegida fue Git Flow. Si bien entendemos que la estrategia Trunk b
 - AWS_REGION
 - AWS_SECRET_ACCESS_KEY
 - AWS_SESSION_TOKEN
-- BUCKET_NAME
+- BUCKET_NAME (nombre para guardar las imagenes, un backet puede tener un nombre unico, )
 - EMAIL_PASS
 - EMAIL_USER
 - REPO_OWNER_MAIL
