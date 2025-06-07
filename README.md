@@ -83,3 +83,39 @@ Componentes:
    - Se sube la imagen a ECR correspondiente al entorno
    - Se actualiza el archivo `docker-compose.generated.yml` con el tag generado
    - El archivo `docker-compose.generated.yml` se sube a un bucket S3
+
+2. **Terraform Deploy**
+   - Se ejecuta Terraform desde GitHub Actions apuntando al ambiente correspondiente:
+     - `dev` → subnet `192.168.2.0/24` + pública `192.168.12.0/24`
+     - `test` → subnet `192.168.3.0/24` + pública `192.168.13.0/24`
+     - `main` → subnet `192.168.1.0/24` + pública `192.168.11.0/24`
+   - Se usa `docker-compose.generated.yml` del S3 para levantar la app
+
+3. **Análisis estático**
+   - Se ejecuta SonarQube en cada push para evaluar calidad de código
+   - Se usa el GitHub Action oficial de SonarCloud o configuración personalizada con `sonar-scanner`
+
+   #### Prerrequisitos SonarQube:
+   - Tener un proyecto creado en [SonarCloud](https://sonarcloud.io/) o en tu instancia propia de SonarQube
+   - Generar un `SONAR_TOKEN` y agregarlo como *Secret* en GitHub
+   - Configurar el archivo `sonar-project.properties` en la raíz del repo, por ejemplo:
+
+     ```properties
+     sonar.projectKey=nombre-del-proyecto
+     sonar.organization=nombre-organizacion
+     sonar.host.url=https://sonarcloud.io
+     sonar.login=${SONAR_TOKEN}
+     sonar.sources=.
+     sonar.language=js
+     sonar.sourceEncoding=UTF-8
+     ```
+
+   - Verificar que las rutas (`sonar.sources`) coincidan con el código fuente real
+
+4. **Testing**
+   - Se ejecutan pruebas de carga con JMeter sobre el entorno correspondiente
+
+5. **Notificación**
+   - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
+
+---
