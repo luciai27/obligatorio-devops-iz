@@ -1,65 +1,85 @@
-# Obligatorio Voting App
+# 🗳️ Obligatorio Voting App
 
-### Herramientas:
-- Repositorio: GitHub
-- CI/CD: GitHub Actions
-- Análisis de código estático: SonarQube
-- Cloud: AWS
-- IaC: Terraform
-- Testing: JMeter
+## 🛠️ Herramientas
+- **Repositorio:** GitHub  
+- **CI/CD:** GitHub Actions  
+- **Análisis de código estático:** SonarQube  
+- **Cloud:** AWS  
+- **Infraestructura como Código (IaC):** Terraform  
+- **Testing:** JMeter  
 
-### Estrategia Git Flow 
-La estrategia elegida fue Git Flow. Si bien entendemos que la estrategia Trunk based tiene características que podrían ser útiles en nuestra situación (promueve la integración continua, especialmente útil para proyecto pequeños), decidimos utilizar la estrategia Git Flow ya que nos permite observar más atentamente los cambios realizados a la rama principal. Dado que todavía estamos comprendiendo cómo utilizar las tecnologías enseñadas en clase, consideramos que un monitoreo más a fondo de lo que se incorpora es la estrategia que más se alinea con nuestra forma de trabajo. Al utilizar esta estrategia, sabemos que lo que se integra a la rama principal está funcionando correctamente.
+---
 
-Entornos bien definidos y separados
-El proyecto tiene ramas dev, test y main (prod), lo cual se alinea muy bien con GitFlow. Cada rama puede representar un entorno estable:
+## 🌿 Estrategia Git Flow
 
-develop (para desarrollo),
-test (preparación y validación),
-main (versión estable y en producción).
+La estrategia elegida fue **Git Flow**. Si bien entendemos que la estrategia **Trunk Based** tiene características útiles (promueve integración continua, especialmente útil en proyectos pequeños), decidimos utilizar **Git Flow** ya que nos permite observar más atentamente los cambios realizados a la rama principal.
 
-Control sobre versiones y despliegues
-GitFlow facilita:
-Controlar cuándo se libera una nueva versión.
-Aplicar hotfixes sin afectar develop.
-Mantener estabilidad en main mientras desarrollás nuevas features.
+Dado que todavía estamos aprendiendo cómo utilizar las tecnologías enseñadas en clase, consideramos que un monitoreo más a fondo de lo que se incorpora es la estrategia que más se alinea con nuestra forma de trabajo. Al utilizar esta estrategia, sabemos que lo que se integra a la rama `main` está funcionando correctamente.
 
-Integración con flujos CI/CD por ramas
-La app genera imágenes por rama (dev, staging, main) y despliega en ambientes específicos. GitFlow se adapta naturalmente a este flujo, donde cada rama tiene su propio pipeline CI/CD por los tags.
+### ✅ Entornos bien definidos y separados
+El proyecto tiene ramas bien diferenciadas que se alinean con Git Flow:
+- `develop`: para desarrollo
+- `test`: para validación antes de producción
+- `main`: versión estable y en producción
 
-Aislación de features y bugs
-podés tener ramas específicas para:
-  Features nuevas sin romper develop.
-  Hotfixes críticos directamente sobre main.
-  Esto permite mayor seguridad antes de llegar a producción.
+### 📦 Control sobre versiones y despliegues
+Git Flow permite:
+- Controlar cuándo se libera una nueva versión
+- Aplicar hotfixes sin afectar `develop`
+- Mantener la estabilidad en `main` mientras se desarrollan nuevas funcionalidades
 
+### 🔁 Integración con flujos CI/CD por ramas
+- La app genera imágenes por rama (`dev`, `test`, `main`)
+- Cada rama despliega en su entorno específico
+- Git Flow encaja naturalmente con pipelines CI/CD basados en tags por rama
 
+### 🛡️ Aislación de features y bugs
+- Ramas específicas para nuevas features sin romper `develop`
+- Hotfixes críticos directamente sobre `main`
+- Mayor seguridad antes de llegar a producción
 
+---
 
-### Prerequisitos
-- AWS_ACCESS_KEY_ID
-- AWS_REGION
-- AWS_SECRET_ACCESS_KEY
-- AWS_SESSION_TOKEN
-- BUCKET_NAME (nombre para guardar las imagenes, un backet puede tener un nombre unico, )
-- EMAIL_PASS
-- EMAIL_USER
-- REPO_OWNER_MAIL
-- SONAR_TOKEN
+## 🔐 Prerequisitos
+Estas variables deben estar configuradas como *Secrets* en GitHub:
 
-### Estrategia de Repo Infra (una carpeta en el mismo repo)
-Decidimos utilizar el mismo repositorio para la carpeta de infraestructura. Dado que nuestro proyecto es pequeño, consideramos que es más útil para nosotros incluir todo en el mismo repositorio, así podemos realizar cambios en archivos tanto de aplicación, como de infraestructura sin tener que cambiar de lugar de trabajo. Si bien entendemos que un repositorio único para infraestructura sería útil para proyectos grandes y para lograr reusar infraestructura, consideramos que no es necesario en nuestro caso.
+- `AWS_ACCESS_KEY_ID`
+- `AWS_REGION`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_SESSION_TOKEN`
+- `BUCKET_NAME` (nombre único del bucket S3)
+- `EMAIL_USER`
+- `EMAIL_PASS`
+- `REPO_OWNER_MAIL`
+- `SONAR_TOKEN`
 
-## Arquitectura
+---
+
+## 📁 Estrategia de Repositorio para Infraestructura
+
+Decidimos usar **el mismo repositorio** para la carpeta de infraestructura.  
+Esto nos resulta más práctico para un proyecto pequeño como este, ya que podemos realizar cambios tanto en la aplicación como en la infraestructura desde un mismo lugar.  
+Si el proyecto fuera más grande, sí consideraríamos separar el código de infraestructura en un repositorio exclusivo para facilitar su reutilización.
+
+---
+
+## 🧱 Arquitectura
 
 ![Architecture diagram](architecture.excalidraw.png)
 
-* A front-end web app in [Python](/vote) which lets you vote between two options
-* A [Redis](https://hub.docker.com/_/redis/) which collects new votes
-* A [.NET](/worker/) worker which consumes votes and stores them in…
-* A [Postgres](https://hub.docker.com/_/postgres/) database backed by a Docker volume
-* A [Node.js](/result) web app which shows the results of the voting in real time
+Componentes:
+- 🐍 Front-end en [Python](/vote): permite votar entre dos opciones
+- 🧠 [Redis](https://hub.docker.com/_/redis/): almacena los votos temporales
+- ⚙️ [Worker en .NET](/worker): consume votos desde Redis y los guarda en...
+- 🛢️ [Postgres](https://hub.docker.com/_/postgres/): base de datos persistente
+- 📊 Web app [Node.js](/result): muestra resultados de la votación en tiempo real
 
+---
 
-####
-Flow de CI/CD
+## 🚀 Flow de CI/CD
+
+1. **Push a una rama (`dev`, `test`, `main`)**
+   - Se genera una nueva imagen Docker con tag único
+   - Se sube la imagen a ECR correspondiente al entorno
+   - Se actualiza el archivo `docker-compose.generated.yml` con el tag generado
+   - El archivo `docker-compose.generated.yml` se sube a un bucket S3
