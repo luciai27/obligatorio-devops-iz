@@ -8,8 +8,35 @@
 - IaC: Terraform
 - Testing: JMeter
 
-### Estrategia Git Flow
+### Estrategia Git Flow 
 La estrategia elegida fue Git Flow. Si bien entendemos que la estrategia Trunk based tiene características que podrían ser útiles en nuestra situación (promueve la integración continua, especialmente útil para proyecto pequeños), decidimos utilizar la estrategia Git Flow ya que nos permite observar más atentamente los cambios realizados a la rama principal. Dado que todavía estamos comprendiendo cómo utilizar las tecnologías enseñadas en clase, consideramos que un monitoreo más a fondo de lo que se incorpora es la estrategia que más se alinea con nuestra forma de trabajo. Al utilizar esta estrategia, sabemos que lo que se integra a la rama principal está funcionando correctamente.
+
+Entornos bien definidos y separados
+El proyecto tiene ramas dev, test y main (prod), lo cual se alinea muy bien con GitFlow. Cada rama puede representar un entorno estable:
+
+develop (para desarrollo),
+
+test (preparación y validación),
+
+main (versión estable y en producción).
+
+Control sobre versiones y despliegues
+GitFlow facilita:
+Controlar cuándo se libera una nueva versión.
+Aplicar hotfixes sin afectar develop.
+Mantener estabilidad en main mientras desarrollás nuevas features.
+
+Integración con flujos CI/CD por ramas
+La app genera imágenes por rama (dev, staging, main) y despliega en ambientes específicos. GitFlow se adapta naturalmente a este flujo, donde cada rama tiene su propio pipeline CI/CD por los tags.
+
+Aislación de features y bugs
+Podés tener ramas específicas para:
+  Features nuevas sin romper develop.
+  Hotfixes críticos directamente sobre main.
+  Esto permite mayor seguridad antes de llegar a producción.
+
+
+
 
 ### Prerequisitos
 - AWS_ACCESS_KEY_ID
