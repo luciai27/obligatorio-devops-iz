@@ -34,3 +34,7 @@ Decidimos utilizar el mismo repositorio para la carpeta de infraestructura. Dado
 * A [.NET](/worker/) worker which consumes votes and stores them in…
 * A [Postgres](https://hub.docker.com/_/postgres/) database backed by a Docker volume
 * A [Node.js](/result) web app which shows the results of the voting in real time
+
+
+####
+Flow de CI/CD
