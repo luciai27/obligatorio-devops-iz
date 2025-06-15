@@ -9,6 +9,20 @@
 - **Testing:** JMeter  
 
 ---
+## 🔐 Prerequisitos
+Estas variables deben estar configuradas como *Secrets* en GitHub:
+
+- `AWS_ACCESS_KEY_ID`
+- `AWS_REGION`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_SESSION_TOKEN`
+- `BUCKET_NAME` (nombre único del bucket S3)
+- `EMAIL_USER`
+- `EMAIL_PASS`
+- `REPO_OWNER_MAIL`
+- `SONAR_TOKEN`
+
+---
 
 ## 🌿 Estrategia Git Flow
 
@@ -40,20 +54,7 @@ Git Flow permite:
 
 ---
 
-## 🔐 Prerequisitos
-Estas variables deben estar configuradas como *Secrets* en GitHub:
 
-- `AWS_ACCESS_KEY_ID`
-- `AWS_REGION`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_SESSION_TOKEN`
-- `BUCKET_NAME` (nombre único del bucket S3)
-- `EMAIL_USER`
-- `EMAIL_PASS`
-- `REPO_OWNER_MAIL`
-- `SONAR_TOKEN`
-
----
 
 ## 📁 Estrategia de Repositorio para Infraestructura
 
