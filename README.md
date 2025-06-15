@@ -183,7 +183,12 @@ En este repositorio, CodeQL se utiliza como un **_quality gate_ automático** du
 ---
 
 📌 *EXTRA* Este proceso se complementa con la configuración de **branch protection rules** en GitHub, exigiendo que el análisis CodeQL se complete correctamente antes de permitir merges en las ramas protegidas.
+
 ---
+Las configuraciones de las **branch protection rules** son las siguientes:
+(QG_1.png)
+
+(QG_2.png)
 
 ### 🧪 ¿Cómo funciona?
 
