@@ -151,25 +151,38 @@ Inicio
 
 Este repositorio utiliza [`codeql-analysis.yml`](.github/workflows/codeql-analysis.yml) para configurar y ejecutar [CodeQL](https://codeql.github.com/), una herramienta de análisis de código estático desarrollada por GitHub. En este caso, se aplica específicamente a la aplicación `voting-app`, con el objetivo de detectar automáticamente vulnerabilidades, errores y problemas de calidad en el código de sus distintos servicios.
 
-### Utilizamos CodeQL en `voting app`:
+## 🚧 CodeQL como *Quality Gate* en el Proceso de Integración Continua
 
-- ⚙️ **Automatización del análisis de seguridad**  
-  CodeQL se ejecuta automáticamente en cada cambio del código (_push_, _pull request_, etc.), asegurando una validación continua del repositorio.
+En este repositorio, CodeQL se utiliza como un **_quality gate_ automático** durante el proceso de integración continua. Esto garantiza que el código que se fusiona en las ramas principales (`dev`, `test` y `prod`) haya pasado un análisis de seguridad y calidad.
 
-- 🛡️ **Detección temprana de vulnerabilidades**  
-  Analiza el código de los servicios `vote`, `result`, `worker`, `redis` y `db` para identificar posibles fallas de seguridad antes de que lleguen a producción.
+### 🔁 Flujo de trabajo
 
-- 🧹 **Mejora de la calidad del código**  
-  CodeQL no solo busca vulnerabilidades sino también errores lógicos y problemas de estilo, ayudando a mantener un código limpio y robusto.
+1. **Creación de un Pull Request hacia `dev`, `test` o `prod`**
+   - Cada vez que se propone un cambio hacia alguna de estas ramas, se activa automáticamente un análisis CodeQL a través de GitHub Actions.
 
-- 🧩 **Flexibilidad y personalización**  
-  Se pueden definir consultas personalizadas para adaptarse al diseño modular y a las particularidades de la arquitectura de `voting-app`.
+2. **Ejecución del análisis de seguridad**
+   - CodeQL analiza el código fuente, construye una base de datos interna y ejecuta consultas para detectar:
+     - Vulnerabilidades de seguridad
+     - Errores de lógica
+     - Problemas comunes de codificación
 
-- 🔄 **Integración con GitHub Actions**  
-  El análisis se realiza automáticamente como parte del flujo de integración continua con [GitHub Actions](https://docs.github.com/en/actions), sin intervención manual.
+3. **Evaluación del resultado**
+   - Si el análisis detecta alertas críticas, el workflow falla y **se bloquea el merge** hasta que se resuelvan los problemas.
 
-- 👁️ **Visibilidad clara de los resultados**  
-  Las alertas generadas por CodeQL aparecen en la pestaña **Security** de GitHub, lo que facilita su seguimiento por parte del equipo de desarrollo.
+4. **Merge aprobado solo si pasa el quality gate**
+   - El código solo puede integrarse si pasa exitosamente el análisis CodeQL, asegurando que las ramas clave mantengan un nivel mínimo de seguridad y calidad.
+
+### ✅ Beneficios
+
+- 🔒 **Seguridad preventiva**: Se bloquean vulnerabilidades antes de llegar a producción.
+- 📐 **Consistencia**: Se aplica el mismo estándar en todos los entornos (`dev`, `test`, `prod`).
+- 🧹 **Reducción de deuda técnica**: Se previene la acumulación de errores y malas prácticas en el tiempo.
+- 🚀 **Despliegues más confiables**: Cada rama mantiene un estado seguro y controlado.
+
+---
+
+📌 *EXTRA* Este proceso se complementa con la configuración de **branch protection rules** en GitHub, exigiendo que el análisis CodeQL se complete correctamente antes de permitir merges en las ramas protegidas.
+
 
 ### 🧪 ¿Cómo funciona?
 
