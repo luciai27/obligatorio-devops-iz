@@ -9,6 +9,20 @@
 - **Testing:** JMeter  
 
 ---
+## 🔐 Prerequisitos
+Estas variables deben estar configuradas como *Secrets* en GitHub:
+
+- `AWS_ACCESS_KEY_ID`
+- `AWS_REGION`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_SESSION_TOKEN`
+- `BUCKET_NAME` (nombre único del bucket S3)
+- `EMAIL_USER`
+- `EMAIL_PASS`
+- `REPO_OWNER_MAIL`
+- `SONAR_TOKEN`
+
+---
 
 ## 🌿 Estrategia Git Flow
 
@@ -40,20 +54,7 @@ Git Flow permite:
 
 ---
 
-## 🔐 Prerequisitos
-Estas variables deben estar configuradas como *Secrets* en GitHub:
 
-- `AWS_ACCESS_KEY_ID`
-- `AWS_REGION`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_SESSION_TOKEN`
-- `BUCKET_NAME` (nombre único del bucket S3)
-- `EMAIL_USER`
-- `EMAIL_PASS`
-- `REPO_OWNER_MAIL`
-- `SONAR_TOKEN`
-
----
 
 ## 📁 Estrategia de Repositorio para Infraestructura
 
@@ -147,12 +148,13 @@ Inicio
 ## Notificación
    - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
 
-## 🔐 Análisis de Seguridad Automatizado con CodeQL
 
-Este repositorio utiliza [`codeql-analysis.yml`](.github/workflows/codeql-analysis.yml) para configurar y ejecutar [CodeQL](https://codeql.github.com/), una herramienta de análisis de código estático desarrollada por GitHub. En este caso, se aplica específicamente a la aplicación `voting-app`, con el objetivo de detectar automáticamente vulnerabilidades, errores y problemas de calidad en el código de sus distintos servicios.
 
-## 🚧 CodeQL como *Quality Gate* en el Proceso de Integración Continua
 
+
+## 🚧 CodeQL y  super-linter como *Quality Gate* en el Proceso de Integración Continua
+
+Este repositorio utiliza [`codeql-analysis.yml`](.github/workflows/codeql-analysis.yml) para configurar y ejecutar [CodeQL](https://codeql.github.com/), una herramienta de análisis de código estático desarrollada por GitHub, para los siguientes lenguajes 'csharp', 'javascript', 'python'. En este caso, se aplica específicamente a la aplicación `voting-app`, con el objetivo de detectar automáticamente vulnerabilidades, errores y problemas de calidad en el código de sus distintos servicios.
 En este repositorio, CodeQL se utiliza como un **_quality gate_ automático** durante el proceso de integración continua. Esto garantiza que el código que se fusiona en las ramas principales (`dev`, `test` y `prod`) haya pasado un análisis de seguridad y calidad.
 
 ### 🔁 Flujo de trabajo
@@ -183,6 +185,12 @@ En este repositorio, CodeQL se utiliza como un **_quality gate_ automático** du
 
 📌 *EXTRA* Este proceso se complementa con la configuración de **branch protection rules** en GitHub, exigiendo que el análisis CodeQL se complete correctamente antes de permitir merges en las ramas protegidas.
 
+---
+Las configuraciones de las **branch protection rules** son las siguientes:
+
+(QG_1.png)
+
+(QG_2.png)
 
 ### 🧪 ¿Cómo funciona?
 
