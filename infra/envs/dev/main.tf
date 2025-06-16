@@ -17,7 +17,7 @@ data "aws_internet_gateway" "shared" {
 }
 
 # Public Subnets
-resource "aws_subnet" "public_1" {
+resource "aws_subnet" "public_dev_1" {
   vpc_id                  = data.aws_vpc.shared.id
   cidr_block              = var.public_subnet_cidrs[0]
   availability_zone       = "${var.region}a"
@@ -42,7 +42,7 @@ resource "aws_subnet" "public_dev_2" {
 # Private Subnets
 resource "aws_subnet" "private_dev_1" {
   vpc_id            = data.aws_vpc.shared.id
-  cidr_block        = var.public_subnet_cidrs[0]
+  cidr_block        = var.private_subnet_cidrs[0]
   availability_zone = "${var.region}a"
  
   tags = {
