@@ -188,9 +188,9 @@ En este repositorio, CodeQL se utiliza como un **_quality gate_ automático** du
 ---
 Las configuraciones de las **branch protection rules** son las siguientes:
 
-(QG_1.png)
+![QG_1.png](QG_1.png)
 
-(QG_2.png)
+![QG_2.png](QG_2.png)
 
 ### 🧪 ¿Cómo funciona?
 
