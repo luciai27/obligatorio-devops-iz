@@ -1,3 +1,7 @@
+terraform {
+  backend "s3" {}
+}
+
 resource "aws_vpc" "shared" {
   cidr_block           = "192.168.0.0/16"
   enable_dns_support   = true
