@@ -59,7 +59,7 @@ jobs:
 
       - name: Init Terraform
         working-directory: infra
-        run: terraform init -backend-config="bucket=voting-app-tfs" -backend-config="region=us-east-1" -backend-config="key=infra/voting-App.tfstate"
+        run: terraform init -backend-config="bucket=votingapp-states" -backend-config="region=us-east-1" -backend-config="key=${{ env.ENV }}/voting-app-${{ env.ENV }}.tfstate"
 
       - name: Plan Terraform
         working-directory: infra
