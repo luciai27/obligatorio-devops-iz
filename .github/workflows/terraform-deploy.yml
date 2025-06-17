@@ -56,7 +56,7 @@ jobs:
       - name: Terraform Init + Apply - Network Layer
         working-directory: infra/network
         run: |
-          terraform init -backend-config="bucket=votingapp-states-gz" -backend-config="region=us-east-1" -backend-config="key=voting-app-network.tfstate"
+          terraform init -backend-config="bucket=voting-app-states-gz" -backend-config="region=us-east-1" -backend-config="key=voting-app-network.tfstate"
           terraform apply -auto-approve -input=false
 
         # Obtener valor de key_name desde outputs si querés exportarlo dinámicamente
