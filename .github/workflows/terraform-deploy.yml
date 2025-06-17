@@ -63,5 +63,5 @@ jobs:
       - name: Terraform Init + Apply - Env Layer
         working-directory: infra/env/${{ steps.set_env.outputs.env }}
         run: |
-          terraform init -backend-config="bucket=votingapp-states" -backend-config="region=us-east-1" -backend-config="key=infa/$ENV/voting-app-$ENV.tfstate"
+          terraform init -backend-config="bucket=votingapp-states" -backend-config="region=us-east-1" -backend-config="key=infra/$ENV/voting-app-$ENV.tfstate"
           terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
