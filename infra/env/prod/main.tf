@@ -68,9 +68,7 @@ resource "aws_eks_cluster" "eks" {
   }
 }
 
-data "aws_key_pair" "existing_key" {
-  key_name = "voting_app-key"
-}
+
 
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = var.cluster_name
@@ -86,10 +84,6 @@ resource "aws_eks_node_group" "node_group" {
 
   instance_types = ["t3.small"]
   ami_type       = "AL2_x86_64"
-
-  remote_access {
-    ec2_ssh_key = data.aws_key_pair.existing_key.key_name
-  }
 
   tags = {
     Name = var.node_group_name
