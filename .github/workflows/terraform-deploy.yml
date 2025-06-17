@@ -56,12 +56,12 @@ jobs:
       - name: Terraform Init + Apply - Network Layer
         working-directory: infra/network
         run: |
-          terraform init -input=false
+          terraform init -backend-config="bucket=votingapp-states" -backend-config="region=us-east-1" -backend-config="key=voting-app-network.tfstate"
           terraform apply -auto-approve -input=false
 
         ##    Luego despliega la capa de infraestructura específica del ambiente.
       - name: Terraform Init + Apply - Env Layer
         working-directory: infra/env/${{ steps.set_env.outputs.env }}
         run: |
-          terraform init -backend-config="bucket=votingapp-states" -backend-config="region=us-east-1" -backend-config="key=infra/$ENV/voting-app-$ENV.tfstate"
+          terraform init -backend-config="bucket=votingapp-states" -backend-config="region=us-east-1" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
           terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
