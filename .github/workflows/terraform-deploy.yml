@@ -60,18 +60,9 @@ jobs:
           terraform init -backend-config="bucket=${{secrets.BUCKET_NAME}}" -backend-config="region=${{secrets.AWS_REGION}}" -backend-config="key=voting-app-network.tfstate"
           terraform apply -auto-approve -input=false
 
-        # Obtener valor de key_name desde outputs si querés exportarlo dinámicamente
-      - name: Extract SSH Key Name
-        id: get_key
-        working-directory: infra/network
-        run: |
-          KEY_NAME=$(terraform output -raw key_name)
-          echo "key_name=$KEY_NAME" >> $GITHUB_OUTPUT
-
         ##    Luego despliega la capa de infraestructura específica del ambiente.
       - name: Terraform Init + Apply - Env Layer
         working-directory: infra/env/${{ steps.set_env.outputs.env }}
         run: |
           terraform init -backend-config="bucket=${{secrets.BUCKET_NAME}}" -backend-config="region=${{secrets.AWS_REGION}}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
-          terraform apply -auto-approve -input=false -var-file="terraform.tfvars" \
-          -var="key_name=${{ steps.get_key.outputs.key_name }}" 
+          terraform apply -auto-approve -input=false -var-file="terraform.tfvars" 
