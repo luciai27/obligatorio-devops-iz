@@ -31,12 +31,3 @@ variable "node_group_name" {
   type        = string
 }
 
-variable "bucket" {
-  description = "The S3 bucket for storing Terraform state"
-  type        = string
-}
-
-variable "key" {
-  description = "The S3 key for the Terraform state file"
-  type        = string
-}
