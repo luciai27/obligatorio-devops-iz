@@ -22,7 +22,7 @@ data "aws_internet_gateway" "shared" {
 
 resource "aws_subnet" "public" {
   count             = length(var.public_subnet_cidrs)
-  vpc_id            = aws_vpc.vpc.id
+  vpc_id            = data.aws_vpc.shared.id
   cidr_block        = var.public_subnet_cidrs[count.index]
   availability_zone = var.availability_zones[count.index]
   map_public_ip_on_launch = true
@@ -34,7 +34,7 @@ resource "aws_subnet" "public" {
 
 
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.vpc.id
+  vpc_id = data.aws_vpc.shared.id
 
   tags = {
     Name = "${data.aws_vpc.shared.tags.Name}-public-rt"
@@ -49,7 +49,7 @@ resource "aws_route" "default_route" {
 
 resource "aws_route_table_association" "public" {
   count          = length(aws_subnet.public)
-  subnet_id      = aws_subnet.public[count.index].id
+  subnet_id      = var.aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
 
