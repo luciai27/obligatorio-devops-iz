@@ -68,21 +68,8 @@ resource "aws_eks_cluster" "eks" {
   }
 }
 
-resource "tls_private_key" "ssh_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
-
-resource "aws_key_pair" "key" {
-  key_name   = "voting_app-key"
-  public_key = tls_private_key.ssh_key.public_key_openssh
-}
-
-resource "local_file" "private_key" {
-  content              = tls_private_key.ssh_key.private_key_pem
-  filename             = "./voting_app-key.pem"
-  file_permission      = "0600"
-  directory_permission = "0700"
+data "aws_key_pair" "existing_key" {
+  key_name = "voting_app-key"
 }
 
 resource "aws_eks_node_group" "node_group" {
