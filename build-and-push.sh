@@ -159,7 +159,7 @@ echo "🚀 Listo para desplegar con: docker compose -f $COMPOSE_FILE up -d"
 
 # Subir docker-compose a S3
 
-S3_BUCKET="ob-iztest2"
+S3_BUCKET="dc-bucket-iz"
 S3_KEY="docker-compose/$COMPOSE_FILE"
 
 echo "☁️ Subiendo $COMPOSE_FILE a S3 (s3://$S3_BUCKET/$S3_KEY)..."
