@@ -1,0 +1,85 @@
+name: CI/CD Voting App
+
+on:
+  push:
+    branches: [dev, test, main]
+  pull_request:
+    branches: [dev, test, main]
+
+env:
+  TF_VERSION: 1.5.7
+  AWS_REGION: us-east-1
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set environment name
+        id: set_env
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "env=prod" >> $GITHUB_OUTPUT
+          else
+            echo "env=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and Push Docker Images
+        run: |
+          chmod +x ./build-and-push.sh
+          ./build-and-push.sh
+
+      - name: Terraform Init + Apply - Network Layer
+        working-directory: infra/network
+        run: |
+          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-network.tfstate"
+          terraform apply -auto-approve -input=false
+
+      - name: Terraform Init + Apply - Env Layer
+        working-directory: infra/env/${{ steps.set_env.outputs.env }}
+        run: |
+          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
+          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
+
+      - name: Desplegar Kubernetes Manifiestos
+        if: success()
+        run: |
+          aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
+          kubectl apply -n ${{ steps.set_env.outputs.env }} -f k8s-specifications/
+
+      - name: 📧 Notificación por email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: "✅ Deploy OK - ${{ steps.set_env.outputs.env }}"
+          to: ${{ secrets.REPO_OWNER_MAIL }}
+          from: "CI/CD Bot <${{ secrets.EMAIL_USER }}>"
+          body: |
+            La infraestructura y aplicación para el ambiente **${{ steps.set_env.outputs.env }}** se desplegó correctamente en AWS.
+            - Repositorio: ${{ github.repository }}
+            - Rama: ${{ github.ref_name }}
+            - Usuario: ${{ github.actor }}
