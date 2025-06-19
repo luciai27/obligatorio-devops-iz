@@ -26,8 +26,8 @@ case "$BRANCH_NAME" in
     ;;
 esac
 
-#TAG_COMBINADO="$BRANCH_TAG-$COMMIT_HASH"
-TAG_COMBINADO="latest"
+TAG_COMBINADO="$BRANCH_TAG-$COMMIT_HASH"
+#TAG_COMBINADO="latest"
 
 echo "🌿 Rama: $BRANCH_NAME"
 echo "🔖 Tag combinado: $TAG_COMBINADO"
