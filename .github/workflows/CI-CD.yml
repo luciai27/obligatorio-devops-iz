@@ -60,14 +60,19 @@ jobs:
         run: |
           terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
           terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
+          
+      - name: Replace AWS ID in manifest
+        run: |
+          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/result-deployment.yaml
+          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/vote-deployment.yaml
 
-      - name: Desplegar Kubernetes Manifiestos
+      - name: Deploy Kubernetes Manifests
         if: success()
         run: |
           aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
           kubectl apply -f k8s-specifications/
 
-      - name: 📧 Notificación por email
+      - name: Email notification
         if: success()
         uses: dawidd6/action-send-mail@v3
         with:
