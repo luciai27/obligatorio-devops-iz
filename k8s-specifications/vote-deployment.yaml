@@ -15,7 +15,7 @@ spec:
         app: vote
     spec:
       containers:
-      - image: {{AWS_ID}}.dkr.ecr.us-east-1.amazonaws.com/voting-app/vote
+      - image: {{ECR_BASE_URL}}/voting-app/vote:{{TAG_COMBINADO}}
         name: vote
         ports:
         - containerPort: 80

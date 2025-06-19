@@ -75,8 +75,8 @@ echo "🏁 Proceso terminado."
 # ----------------------------
 
 COMPOSE_FILE="docker-compose.generated.${BRANCH_TAG}.yml"
-#TAG="${BRANCH_TAG}-${COMMIT_HASH}"
-TAG="latest"
+TAG="${BRANCH_TAG}-${COMMIT_HASH}"
+#TAG="latest"
 
 echo "📝 Generando $COMPOSE_FILE con tag $TAG..."
 
@@ -167,3 +167,7 @@ S3_KEY="docker-compose/$COMPOSE_FILE"
 echo "☁️ Subiendo $COMPOSE_FILE a S3 (s3://$S3_BUCKET/$S3_KEY)..."
 aws s3 cp "$COMPOSE_FILE" "s3://$S3_BUCKET/$S3_KEY" --region $AWS_REGION
 echo "✅ Archivo subido a S3."
+
+###Exportarlas como variables de entonro
+echo "ECR_BASE_URL=$ECR_BASE_URL" >> $GITHUB_ENV
+echo "TAG_COMBINADO=$TAG_COMBINADO" >> $GITHUB_ENV

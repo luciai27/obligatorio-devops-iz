@@ -15,7 +15,7 @@ spec:
         app: result
     spec:
       containers:
-      - image: {{AWS_ID}}.dkr.ecr.us-east-1.amazonaws.com/voting-app/result:latest
+      - image: {{ECR_BASE_URL}}/voting-app/result:{{TAG_COMBINADO}}
         name: result
         ports:
         - containerPort: 80

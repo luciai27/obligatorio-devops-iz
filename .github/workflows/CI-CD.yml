@@ -63,9 +63,10 @@ jobs:
           
       - name: Replace AWS ID in manifest
         run: |
-          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/result-deployment.yaml
-          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/vote-deployment.yaml
-          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/worker-deployment.yaml
+          for file in k8s-specifications/*-deployment.yaml; do
+            sed -i "s|{{ECR_BASE_URL}}|${{ env.ECR_BASE_URL }}|g" "$file"
+            sed -i "s|{{TAG_COMBINADO}}|${{ env.TAG_COMBINADO }}|g" "$file"
+          done
 
       - name: Deploy Kubernetes Manifests
         if: success()
