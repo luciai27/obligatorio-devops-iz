@@ -65,7 +65,7 @@ jobs:
         if: success()
         run: |
           aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
-          kubectl apply -n ${{ steps.set_env.outputs.env }} -f k8s-specifications/
+          kubectl apply -f k8s-specifications/
 
       - name: 📧 Notificación por email
         if: success()
