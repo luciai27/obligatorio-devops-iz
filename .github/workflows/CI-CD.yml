@@ -65,6 +65,7 @@ jobs:
         run: |
           sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/result-deployment.yaml
           sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/vote-deployment.yaml
+          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/worker-deployment.yaml
 
       - name: Deploy Kubernetes Manifests
         if: success()
