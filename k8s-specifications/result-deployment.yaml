@@ -15,7 +15,7 @@ spec:
         app: result
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_result
+      - image: {{ECR_BASE_URL}}/voting-app/result:{{TAG_COMBINADO}}
         name: result
         ports:
         - containerPort: 80
