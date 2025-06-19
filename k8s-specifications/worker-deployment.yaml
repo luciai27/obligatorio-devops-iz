@@ -15,5 +15,5 @@ spec:
         app: worker
     spec:
       containers:
-      - image: {{AWS_ID}}.dkr.ecr.us-east-1.amazonaws.com/voting-app/worker
+      - image: {{AWS_ID}}.dkr.ecr.us-east-1.amazonaws.com/voting-app/worker:latest
         name: worker

@@ -61,11 +61,11 @@ jobs:
           terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
           terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
           
-      - name: Replace AWS ID in manifest
-        run: |
-          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/result-deployment.yaml
-          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/vote-deployment.yaml
-          sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/worker-deployment.yaml
+#      - name: Replace AWS ID in manifest
+#        run: |
+ #         sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/result-deployment.yaml
+  #        sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/vote-deployment.yaml
+   #       sed -i "s|{{AWS_ID}}|${{ secrets.AWS_ID }}|g" k8s-specifications/worker-deployment.yaml
 
       - name: Deploy Kubernetes Manifests
         if: success()

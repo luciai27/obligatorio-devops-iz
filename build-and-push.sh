@@ -74,7 +74,8 @@ echo "🏁 Proceso terminado."
 # ----------------------------
 
 COMPOSE_FILE="docker-compose.generated.${BRANCH_TAG}.yml"
-TAG="${BRANCH_TAG}-${COMMIT_HASH}"
+#TAG="${BRANCH_TAG}-${COMMIT_HASH}"
+TAG="latest"
 
 echo "📝 Generando $COMPOSE_FILE con tag $TAG..."
 
