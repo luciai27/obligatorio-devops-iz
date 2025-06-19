@@ -1,0 +1,39 @@
+name: Deploy to EKS Dev
+
+on:
+  push:
+    branches: [dev]
+
+jobs:
+  deploy:
+    name: Apply YAMLs to EKS
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      CLUSTER_NAME: #AWS CLUSTER NAME
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::330090896481:role/LabRole #Hay que ponerlo como secreto?
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: v1.29.0
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name $CLUSTER_NAME \
+            --region $AWS_REGION
+
+      - name: Apply YAMLs
+        run: |
+          kubectl apply -f infra/yamls/
