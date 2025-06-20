@@ -78,7 +78,7 @@ jobs:
         run: |
          sudo apt update
          sudo apt install python3 default-jre-headless python3-tk python3-pip python3-dev libxml2-dev libxslt-dev zlib1g-dev net-tools
-         sudo python3 -m pip install bzt --break-system-packages
+         sudo python3 -m pip install --ignore-installed urllib3 bzt --break-system-packages
 
       - name: Run JMeter Test
         if: ${{ github.ref == 'refs/heads/dev' && env.ALB_VOTE != '' && env.ALB_RESULT != '' }}
