@@ -28,16 +28,15 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${data.aws_vpc.shared.tags.Name}-public-${count.index + 1}"
+    Name = "${data.aws_vpc.shared.tags.Name}-public-${var.environment}-${count.index + 1}"
   }
 }
-
 
 resource "aws_route_table" "public" {
   vpc_id = data.aws_vpc.shared.id
 
   tags = {
-    Name = "${data.aws_vpc.shared.tags.Name}-public-rt"
+    Name = "${data.aws_vpc.shared.tags.Name}-public-${var.environment}-rt"
   }
 }
 
