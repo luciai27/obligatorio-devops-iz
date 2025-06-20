@@ -74,6 +74,24 @@ jobs:
           aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
           kubectl apply -f k8s-specifications/
 
+      - name: Install Python, Java Runtime and Taurus
+        run: |
+         sudo apt update
+         sudo apt install python3 default-jre-headless python3-tk python3-pip python3-dev libxml2-dev libxslt-dev zlib1g-dev net-tools
+         sudo python3 -m pip install bzt
+
+      - name: Run JMeter Test
+        if: github.ref == 'refs/heads/test'
+        env: 
+          ALB_VOTE: ${{ secrets.ALB_VOTE }}
+          ALB_RESULT: ${{ secrets.ALB_RESULT }}
+        run: |
+         echo "Running test for Vote site"
+         bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE
+
+         echo "Running test for Result site"
+         bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT
+
       - name: Email notification
         if: success()
         uses: dawidd6/action-send-mail@v3
