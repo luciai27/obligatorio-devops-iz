@@ -15,5 +15,5 @@ spec:
         app: worker
     spec:
       containers:
-      - image: dockersamples/examplevotingapp_worker
+      - image: {{ECR_BASE_URL}}/voting-app/worker:{{TAG_COMBINADO}}
         name: worker
