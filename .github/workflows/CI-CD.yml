@@ -108,8 +108,6 @@ jobs:
           echo "Running test for Result site"
           bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
 
-          echo "ALB_VOTE: $ALB_VOTE"
-
       - name: Email notification
         if: success()
         uses: dawidd6/action-send-mail@v3
