@@ -22,6 +22,7 @@
      <hashTree>
        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="HTTP Request">
          <stringProp name="HTTPSampler.domain">${__P(TARGET_DOMAIN)}</stringProp>
+         <stringProp name="HTTPSampler.port">${__P(TARGET_PORT)}</stringProp>
          <stringProp name="HTTPSampler.protocol">http</stringProp>
          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
          <stringProp name="HTTPSampler.method">GET</stringProp>

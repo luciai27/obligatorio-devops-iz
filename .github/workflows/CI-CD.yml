@@ -94,12 +94,16 @@ jobs:
         env: 
           ALB_VOTE: ${{ secrets.ALB_VOTE }}
           ALB_RESULT: ${{ secrets.ALB_RESULT }}
+          VOTE_PORT: "8080"
+          RESULT_PORT: "8081"
         run: |
           echo "Running test for Vote site"
-          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE
+          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT
 
           echo "Running test for Result site"
-          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT
+          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
+
+          echo "ALB_VOTE: $ALB_VOTE"
 
       - name: Email notification
         if: success()
