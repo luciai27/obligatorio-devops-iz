@@ -111,16 +111,20 @@ jobs:
 
       - name: Build and Push Lambda image
         run: |
-          docker build -t eks-backup-lambda ./lambda-backup
-          docker tag eks-backup-lambda:latest {{ECR_BASE_URL}}/eks-backup-lambda:latest
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin {{ECR_BASE_URL}}
-          docker push {{ECR_BASE_URL}}/eks-backup-lambda:latest    
+          docker build -t lambda-backup ./lambda-backup
+          docker tag lambda-backup:latest 186478816830.dkr.ecr.us-east-1.amazonaws.com/lambda-backup:latest
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin 186478816830.dkr.ecr.us-east-1.amazonaws.com
+          docker push 186478816830.dkr.ecr.us-east-1.amazonaws.com/lambda-backup:latest  
 
       - name: Invoke Lambda Backup
         if: success()
         run: |
-           aws lambda invoke --function-name $FUNCTION_NAME /tmp/lambda-backup-output.json
-           cat /tmp/lambda-backup-output.json
+          aws lambda invoke \
+            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
+            --region $AWS_REGION \
+            --log-type Tail \
+            lambda_response.json
+          cat lambda_response.json
 
 
       - name: Email notification

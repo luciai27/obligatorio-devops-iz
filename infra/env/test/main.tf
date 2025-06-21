@@ -88,3 +88,22 @@ resource "aws_eks_node_group" "node_group" {
 
   depends_on = [aws_eks_cluster.eks]
 }
+
+resource "aws_lambda_function" "eks_backup" {
+  function_name = "eks-backup-${var.environment}"
+  role          = data.aws_iam_role.lab_role.arn
+
+  package_type  = "Image"
+  image_uri     = "186478816830.dkr.ecr.us-east-1.amazonaws.com/lambda-backup:${var.environment}"
+
+  timeout       = 900
+  memory_size   = 256
+
+  environment {
+    variables = {
+      CLUSTER_NAME = "voting-app-${var.environment}-cluster"
+      BUCKET_NAME  = secrets.BUCKET_NAME
+      REGION       = secrets.aws_region
+    }
+  }
+}
