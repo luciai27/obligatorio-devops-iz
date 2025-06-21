@@ -103,9 +103,9 @@ resource "aws_lambda_function" "eks_backup" {
 
   environment {
     variables = {
-      CLUSTER_NAME = "voting-app-${var.environment}-cluster"
-      BUCKET_NAME  = secrets.BUCKET_NAME
-      REGION       = secrets.aws_region
+      CLUSTER_NAME = var.cluster_name
+      BUCKET_NAME  = "dc-bucket-iz"  ## ver como pasarlo de gitaction
+      REGION       = var.region
     }
   }
 }
