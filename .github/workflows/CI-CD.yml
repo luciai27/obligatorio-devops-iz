@@ -107,6 +107,21 @@ jobs:
 
           echo "Running test for Result site"
           bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
+      
+
+      - name: Build and Push Lambda image
+        run: |
+          docker build -t eks-backup-lambda ./lambda-backup
+          docker tag eks-backup-lambda:latest {{ECR_BASE_URL}}/eks-backup-lambda:latest
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin {{ECR_BASE_URL}}
+          docker push {{ECR_BASE_URL}}/eks-backup-lambda:latest    
+
+      - name: Invoke Lambda Backup
+        if: success()
+        run: |
+           aws lambda invoke --function-name $FUNCTION_NAME /tmp/lambda-backup-output.json
+           cat /tmp/lambda-backup-output.json
+
 
       - name: Email notification
         if: success()
