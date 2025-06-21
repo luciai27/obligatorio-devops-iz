@@ -49,6 +49,7 @@ jobs:
           chmod +x ./build-and-push.sh
           ./build-and-push.sh
 
+
       - name: Terraform Init + Apply - Network Layer
         working-directory: infra/network
         run: |
@@ -107,15 +108,14 @@ jobs:
 
           echo "Running test for Result site"
           bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
-      
 
       - name: Build and Push Lambda image
         run: |
           docker build -t lambda-backup ./lambda-backup
           docker tag lambda-backup:latest 186478816830.dkr.ecr.us-east-1.amazonaws.com/lambda-backup:latest
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin 186478816830.dkr.ecr.us-east-1.amazonaws.com
-          docker push 186478816830.dkr.ecr.us-east-1.amazonaws.com/lambda-backup:latest  
-
+          docker push 186478816830.dkr.ecr.us-east-1.amazonaws.com/lambda-backup:latest
+          
       - name: Invoke Lambda Backup
         if: success()
         run: |
