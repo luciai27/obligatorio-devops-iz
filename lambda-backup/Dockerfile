@@ -15,8 +15,8 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     unzip awscliv2.zip && ./aws/install
 
 # Copiar script
-COPY backup.sh /bootstrap
-RUN chmod +x /bootstrap
+COPY backup.sh /backup.sh
+
 
 # Imagen final basada en Lambda AL2
 FROM public.ecr.aws/lambda/provided:al2
@@ -25,12 +25,13 @@ FROM public.ecr.aws/lambda/provided:al2
 COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=builder /usr/local/bin/aws /usr/local/bin/aws
 COPY --from=builder /usr/local/aws-cli /usr/local/aws-cli
-COPY --from=builder /bootstrap /var/task/bootstrap
 
-# Establecer PATH para AWS CLI v2
-ENV PATH="/usr/local/aws-cli/v2/current/bin:$PATH"
 
-# Dar permisos de ejecución
+# Setear PATH para que aws funcione
+ENV PATH="/usr/local/aws-cli/v2/current/bin:${PATH}"
+
+# Copiar script y establecer como bootstrap
+COPY --from=builder /backup.sh /var/task/bootstrap
 RUN chmod +x /var/task/bootstrap
 
 # Lambda requiere este ENTRYPOINT
