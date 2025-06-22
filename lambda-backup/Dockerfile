@@ -23,10 +23,11 @@ FROM public.ecr.aws/lambda/python:3.10
 # Copiar binarios y scripts necesarios
 COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=builder /usr/local/aws-cli /usr/local/aws-cli
-COPY --from=builder /backup.sh /var/task/bootstrap
+
 
 # Asegurar PATH
 ENV PATH="/usr/local/aws-cli/v2/current/bin:${PATH}"
+COPY --from=builder /backup.sh /var/task/bootstrap
 
 # Dar permisos de ejecución
 RUN chmod +x /var/task/bootstrap
