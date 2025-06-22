@@ -6,7 +6,8 @@
 - **Análisis de código estático:** SonarQube  
 - **Cloud:** AWS  
 - **Infraestructura como Código (IaC):** Terraform  
-- **Testing:** JMeter  
+- **Testing:** JMeter
+- **Lambda:** Backup 
 
 ---
 ## 🔐 Prerequisitos
@@ -115,11 +116,64 @@ Inicio
 ```
 
  ## Terraform Deploy
-   - Se ejecuta Terraform desde GitHub Actions apuntando al ambiente correspondiente:
-     - `dev` → subnet `192.168.2.0/24` + pública `192.168.12.0/24`
-     - `test` → subnet `192.168.3.0/24` + pública `192.168.13.0/24`
-     - `main` → subnet `192.168.1.0/24` + pública `192.168.11.0/24`
-   - Se usa `docker-compose.generated.yml` del S3 para levantar la app
+   - La estructura de infraestructura es la siguiente
+   ```text  
+        infra/
+            env
+              |_ dev 
+              |    lambda_backup.tf
+              |    main.tf
+              |    outputs.tf
+              |    terraform.tfvars
+              |    variables.tf    
+              |_ test
+              |    lambda_backup.tf
+              |    main.tf
+              |    outputs.tf
+              |    terraform.tfvars
+              |    variables.tf    
+              |_ main
+              |    lambda_backup.tf
+              |    main.tf
+              |    outputs.tf
+              |    terraform.tfvars
+              |    variables.tf
+              |_ network
+                   main.tf
+                   output.tf
+
+   
+```
+Tomamos la decisión de esta estructura para la infraestructura por los siguientes motivos:
+
+**Separación clara por entorno**
+
+Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
+   - Permite aplicar cambios de forma independiente.
+   - Reduce el riesgo de errores al evitar que cambios en desarrollo afecten producción.
+   - Facilita pruebas y validaciones antes de promover cambios.
+     
+ **Modularidad y reutilización**
+ 
+ La carpeta network define infraestructura en común para todos los ambientes, VPC, IGW, etc
+
+ **Escalabilidad**
+ 
+ Es facilmente escalable, se puede agregar nuevos entornos sin modificar los existintes
+
+ **Gestión de variables por entorno**
+
+Cada entorno tiene su propio terraform.tfvars, permite definir configuraciones específicas (nombres, tamaños, regiones, etc.) sin duplicar lógica, mejora la trazabilidad y el control de cambios.
+ 
+**Cumplimiento y auditoría**
+
+Separar entornos ayuda a cumplir con políticas de seguridad y auditoría.
+
+---
+
+📌 *EXTRA* Además con esta estructura podemos automatizar despliegues por entorno.
+
+---
 
  ## Análisis estático 
    - Se ejecuta SonarQube en cada push para evaluar calidad de código
