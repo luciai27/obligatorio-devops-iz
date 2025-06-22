@@ -106,8 +106,8 @@ jobs:
 
       - name: Install JMeter manually
         run: |
-          curl -LO https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.zip
-          unzip apache-jmeter-5.5.zip -d jmeter
+          curl -sLO https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.5.zip
+          unzip -q apache-jmeter-5.5.zip -d jmeter
           echo "JMETER_HOME=$(pwd)/jmeter/apache-jmeter-5.5" >> $GITHUB_ENV
 
       - name: Run JMeter Test
@@ -125,18 +125,19 @@ jobs:
 
           echo "Running test for Vote site"
           bzt test.jmx \
-            -o modules.jmeter.jmeter_path=$JMETER_HOME/bin/jmeter \
-            -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE \
-            -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT \
-
+            -o modules.jmeter.jmeter_path="$JMETER_HOME/bin/jmeter" \
+            -o modules.jmeter.properties.TARGET_DOMAIN="$ALB_VOTE" \
+            -o modules.jmeter.properties.TARGET_PORT="$VOTE_PORT" \
+            -o settings.execution.fail-fast=false \
+            -o modules.jmeter.properties.plugins.skip=true
 
           echo "Running test for Result site"
           bzt test.jmx \
-            -o modules.jmeter.jmeter_path=$JMETER_HOME/bin/jmeter \
-            -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT \
-            -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT \
-
-      
+            -o modules.jmeter.jmeter_path="$JMETER_HOME/bin/jmeter" \
+            -o modules.jmeter.properties.TARGET_DOMAIN="$ALB_RESULT" \
+            -o modules.jmeter.properties.TARGET_PORT="$RESULT_PORT" \
+            -o settings.execution.fail-fast=false \
+            -o modules.jmeter.properties.plugins.skip=true
          
       - name: Invoke Lambda Backup
         if: success()
