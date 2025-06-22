@@ -22,7 +22,7 @@ FROM public.ecr.aws/lambda/provided:al2
 # Copiar CLI y utilidades
 COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=builder /usr/local/aws-cli /usr/local/aws-cli
-COPY --from=builder /usr/local/bin/bash /usr/local/bin/bash
+COPY --from=builder /bin/bash /bin/bash
 COPY --from=builder /usr/bin/curl /usr/bin/curl
 COPY --from=builder /usr/bin/unzip /usr/bin/unzip
 COPY --from=builder /usr/bin/gettext /usr/bin/gettext
