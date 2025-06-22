@@ -112,16 +112,17 @@ jobs:
           VOTE_PORT: "8080"
           RESULT_PORT: "8081"
         run: |
-          if [ -z "$ALB_VOTE" ] || [ -z "$ALB_RESULT" ]; then
-            echo "ALB_VOTE or ALB_RESULT is empty. Skipping tests."
-            exit 0
-          fi
-
           echo "Running test for Vote site"
-          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT
+          bzt test.jmx \
+            -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE \
+            -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT \
+            -o modules.jmeter.properties.plugins.skip=true
 
           echo "Running test for Result site"
-          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
+          bzt test.jmx \
+            -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT \
+            -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT \
+            -o modules.jmeter.properties.plugins.skip=true
       
          
       - name: Invoke Lambda Backup
