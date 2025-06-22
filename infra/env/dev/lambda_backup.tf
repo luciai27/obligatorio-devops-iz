@@ -1,8 +1,8 @@
 resource "aws_lambda_function" "eks_backup" {
   function_name = "eks-backup-${var.environment}"
-  role          = "arn:aws:iam::330090896481:role/LabRole"
+  role          = "arn:aws:iam::186478816830:role/LabRole"
   package_type  = "Image"
-  image_uri     = "330090896481.dkr.ecr.us-east-1.amazonaws.com/lambda-backup:latest"
+  image_uri     = "186478816830.dkr.ecr.us-east-1.amazonaws.com/lambda-backup:latest"
   timeout       = 300
 
   environment {

@@ -33,7 +33,7 @@ variable "node_group_name" {
 variable "backup_bucket" {
   description = "The name of the S3 bucket for backups"
   type        = string
-  default     = "votingapp-states"
+  default     = "dc-bucket-iz"
 }
 
 
