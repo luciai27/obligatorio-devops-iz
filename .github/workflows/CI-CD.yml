@@ -63,7 +63,7 @@ jobs:
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
           docker push $ECR_BASE_URL/lambda-backup:latest
 
-          
+
       - name: Terraform Init + Apply - Network Layer
         working-directory: infra/network
         run: |
@@ -89,10 +89,10 @@ jobs:
           aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
           kubectl apply -f k8s-specifications/
 
-      - name: Set up Python 3.10
+      - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install Java Runtime and Taurus dependencies
         run: |

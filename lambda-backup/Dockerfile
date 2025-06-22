@@ -1,7 +1,7 @@
 FROM amazonlinux:2 AS builder
 
 # Instalar dependencias
-RUN yum install -y unzip curl jq gettext bash git tar gzip less shadow-utils && \
+RUN yum install -y unzip curl jq gettext bash git tar gzip less shadow-utils libxcrypt-compat && \
     yum clean all
 
 # Instalar kubectl
