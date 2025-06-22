@@ -1,5 +1,5 @@
+FROM public.ecr.aws/lambda/provided.al2:2023.03.31.14
 
-FROM public.ecr.aws/lambda/provided.al2
 
 # Instalar dependencias
 RUN yum install -y unzip curl tar gzip bash
