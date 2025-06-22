@@ -38,7 +38,7 @@
 #ENTRYPOINT ["/var/task/bootstrap"]
 
 # Etapa base con Python para Lambda
-FROM public.ecr.aws/lambda/python:3.10
+FROM public.ecr.aws/lambda/python:3.13
 
 # Copiar el archivo de función Lambda
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}
