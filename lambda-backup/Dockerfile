@@ -4,22 +4,15 @@ FROM amazonlinux:2 AS builder
 # Instalar dependencias
 RUN yum install -y unzip curl jq gettext bash git tar gzip less
 
-# Instalar AWS CLI v2
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install && \
-    rm -rf aws awscliv2.zip
 
-
-# Instalar kubectl versión fija
+# Instalar kubectl
 ENV KUBECTL_VERSION=1.31.2
 RUN curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
-    chmod +x kubectl && \
-    mv kubectl /usr/local/bin/
+    chmod +x kubectl && mv kubectl /usr/local/bin/
 
-
-
-
+# Instalar AWS CLI v2 como binario directo
+RUN curl -o /usr/local/bin/aws "https://s3.amazonaws.com/aws-cli/awscli-bundle/aws" && \
+    chmod +x /usr/local/bin/aws
 
 
 # Copiar script
