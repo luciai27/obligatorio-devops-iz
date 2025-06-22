@@ -43,6 +43,9 @@ FROM public.ecr.aws/lambda/python:3.13
 # Copiar el archivo de función Lambda
 COPY lambda_function.py ${LAMBDA_TASK_ROOT}
 
+# Link /opt/hostedtoolcache as /actions-runner/_work/_tool
+RUN ln -s /opt/hostedtoolcache _work/_tool
+
 # Instalar dependencias si las tuvieras (por ejemplo, boto3, requests, etc.)
 # RUN pip install -r requirements.txt -t ${LAMBDA_TASK_ROOT}
 
