@@ -196,6 +196,10 @@ Separar entornos ayuda a cumplir con políticas de seguridad y auditoría.
 
    - Verificar que las rutas (`sonar.sources`) coincidan con el código fuente real
 
+Infrome de sonarQube
+
+![Informe_SonarQube.docx](/IMG/Informe_SonarQube.docx)
+
 ## Testing
    - Se ejecutan pruebas de carga con JMeter sobre el entorno correspondiente
 
