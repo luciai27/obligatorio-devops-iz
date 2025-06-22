@@ -50,7 +50,20 @@ jobs:
           chmod +x ./build-and-push.sh
           ./build-and-push.sh
 
+      - name: Create ECR repository if not existe
+        run: |
+          aws ecr describe-repositories --repository-names lambda-backup || \
+          aws ecr create-repository --repository-name lambda-backup
+         
+    
+      - name: Build and Push Lambda image
+        run: |
+          docker build -t lambda-backup ./lambda-backup
+          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
+          docker push $ECR_BASE_URL/lambda-backup:latest
 
+          
       - name: Terraform Init + Apply - Network Layer
         working-directory: infra/network
         run: |
@@ -110,19 +123,7 @@ jobs:
           echo "Running test for Result site"
           bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
       
-      - name: Create ECR repository if not existe
-        run: |
-          aws ecr describe-repositories --repository-names lambda-backup || \
-          aws ecr create-repository --repository-name lambda-backup
          
-    
-      - name: Build and Push Lambda image
-        run: |
-          docker build -t lambda-backup ./lambda-backup
-          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
-          docker push $ECR_BASE_URL/lambda-backup:latest
-          
       - name: Invoke Lambda Backup
         if: success()
         run: |
