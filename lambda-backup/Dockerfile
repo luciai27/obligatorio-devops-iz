@@ -1,8 +1,9 @@
-
+# Fase de construcción
 FROM amazonlinux:2 AS builder
 
-# Instalar dependencias necesarias
-RUN yum install -y unzip curl jq gettext bash git tar gzip less
+# Instalar utilidades necesarias
+RUN yum install -y unzip curl jq gettext bash git tar gzip less shadow-utils && \
+    yum clean all
 
 # Instalar kubectl
 ENV KUBECTL_VERSION=1.31.2
@@ -14,23 +15,26 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
     unzip awscliv2.zip && ./aws/install
 
 # Copiar script
-COPY backup.sh /backup.sh
+COPY backup.sh /bootstrap
+RUN chmod +x /bootstrap
 
-
-# ----------------------
-# Imagen final para Lambda
-# ----------------------
+# Imagen final basada en Lambda AL2
 FROM public.ecr.aws/lambda/provided:al2
 
-# Copiar binarios desde la etapa builder
+# Copiar binarios y script
 COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=builder /usr/local/bin/aws /usr/local/bin/aws
-COPY --from=builder /usr/bin/unzip /usr/bin/unzip
-COPY --from=builder /backup.sh /var/task/bootstrap
+COPY --from=builder /usr/local/aws-cli /usr/local/aws-cli
+COPY --from=builder /bootstrap /var/task/bootstrap
 
+# Establecer PATH para AWS CLI v2
+ENV PATH="/usr/local/aws-cli/v2/current/bin:$PATH"
+
+# Dar permisos de ejecución
 RUN chmod +x /var/task/bootstrap
 
-# Lambda container ENTRYPOINT debe ser bootstrap
+# Lambda requiere este ENTRYPOINT
 ENTRYPOINT ["/var/task/bootstrap"]
+
 
 
