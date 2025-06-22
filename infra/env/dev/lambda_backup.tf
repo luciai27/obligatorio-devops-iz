@@ -14,6 +14,6 @@ resource "aws_lambda_function" "eks_backup" {
   }
 }
 
-resource "aws_ecr_repository" "lambda_repo" {
-  name = "lambda-backup"
-}
+#resource "aws_ecr_repository" "lambda_repo" {
+#  name = "lambda-backup"
+#}
