@@ -1,7 +1,3 @@
-variable "environment" {}
-variable "cluster_name" {}
-variable "backup_bucket" {}
-
 resource "aws_lambda_function" "eks_backup" {
   function_name = "eks-backup-${var.environment}"
   role          = "arn:aws:iam::186478816830:role/LabRole"
