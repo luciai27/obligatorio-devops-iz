@@ -72,7 +72,7 @@
 # -------- STAGE 1: Build image with all tools --------
 FROM amazonlinux:2 AS builder
 
-RSHELL ["/bin/bash", "-c"]
+SHELL ["/bin/bash", "-c"]
 
 # Actualizar e instalar herramientas necesarias
 RUN yum update -y && \
