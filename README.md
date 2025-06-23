@@ -34,6 +34,8 @@ Los enlaces a los ALBs (ALB Result y ALB Vote) son necesarios como secretos ya q
 Los secretos de Email User, Email Pass y Repo Owner Mail son necesarios para el envío de correo cuando se crea un Pull Request.
 
 El Sonar Token es necesario para la realización del análisis de código de SonarQube.
+
+
 ---
 
 ## 🌿 Estrategia Git Flow
