@@ -135,24 +135,24 @@ Inicio
                                                         └── imagen disponible en ECR
                                                             └── 🟨 Construcción de imagen Lambda
                                                                 └── docker build -t lambda-backup ./lambda-backup
-                                                                     └── 🟧 Subir imagen a ECR
-                                                                          ├── docker tag → apuntar al repo ECR
-                                                                          └── docker push → subir imagen
-                                                                              └── 🟦 Creación de infra con Terraform
-                                                                                   ├── terraform init y apply: capa network
-                                                                                   ├── tfstate network guardado en bucket
-                                                                                   ├── terraform init y apply: capa ambiente actual
-                                                                                   └── tfstate ambiente guardado en bucket
-                                                                                       └── 🟩 Despliegue de Kubernetes
-                                                                                            ├── reemplazo de variables en manifiestos
-                                                                                            ├── aws eks update-kubeconfig
-                                                                                            └── kubectl apply -f k8s-specifications
-                                                                                                └── 🔍 Realizar testing de carga
-                                                                                                     ├── seteo de ambiente
-                                                                                                     ├── corre test en ALB de Vote
-                                                                                                     ├── obtiene tabla de restultados
-                                                                                                     ├── corre test en ALB de Results
-                                                                                                     └── obtiene tabla de restultados
+                                                                    └── 🟧 Subir imagen a ECR
+                                                                        ├── docker tag → apuntar al repo ECR
+                                                                        └── docker push → subir imagen
+                                                                            └── 🟦 Creación de infra con Terraform
+                                                                                ├── terraform init y apply: capa network
+                                                                                ├── tfstate network guardado en bucket
+                                                                                ├── terraform init y apply: capa ambiente actual
+                                                                                └── tfstate ambiente guardado en bucket
+                                                                                    └── 🟩 Despliegue de Kubernetes
+                                                                                        ├── reemplazo de variables en manifiestos
+                                                                                        ├── aws eks update-kubeconfig
+                                                                                        └── kubectl apply -f k8s-specifications
+                                                                                            └── 🔍 Realizar testing de carga
+                                                                                                ├── seteo de ambiente
+                                                                                                ├── corre test en ALB de Vote
+                                                                                                ├── tabla de restultados
+                                                                                                ├── corre test en ALB de Results
+                                                                                                └── tabla de restultados
 
 
 ```
@@ -318,10 +318,12 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 
 ## 📸 Tablero Kanban
 
-Primera etapa:
+### Primera etapa:
+
 ![IMG/Trello 1.png](IMG/Trello%201.png)
 
-Segunda etapa:
+### Segunda etapa:
+
 ![IMG/Trello 2.png](IMG/Trello%202.png)
 
-Tercera etapa:
+### Tercera etapa:
