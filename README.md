@@ -7,7 +7,7 @@
 - **Cloud:** AWS  
 - **Infraestructura como Código (IaC):** Terraform  
 - **Testing:** JMeter
-- **Lambda:** Backup 
+- **Serverless:** Lambda 
 
 ---
 ## 🔐 Prerequisitos
@@ -17,30 +17,41 @@ Estas variables deben estar configuradas como *Secrets* en GitHub:
 - `AWS_REGION`
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_SESSION_TOKEN`
-- `BUCKET_NAME` (nombre único del bucket S3)
+- `BUCKET_NAME` (nombre único del bucket S3 en donde se guardarán los tfstates.)
+- `ALB_RESULT` (enlance del ALB creado por AWS a través de K8s para ver los resultados.)
+- `ALB_VOTE` (enlance del ALB creado por AWS a través de K8s para realizar votos.)
 - `EMAIL_USER`
 - `EMAIL_PASS`
 - `REPO_OWNER_MAIL`
 - `SONAR_TOKEN`
 
+Los primeros cuatro secretos corresponden a configuraciones de AWS, por lo que siempre son necesarios para poder acceder correctamente a los servicios.
+
+El Bucket Name es necesario ya que, al ser dos personas las que estamos trabajando en el proyecto y dado que los buckets de S3 deben tener nombres únicos, no es posible utilizar un mismo nombre en cuentas diferentes. Esto fue algo que se tuvo que parametrizar.
+
+Los enlaces a los ALBs (ALB Result y ALB Vote) son necesarios como secretos ya que la creación de los ALBs es automatizada por AWS gracias a la forma en que configuramos los K8s. Dado que su creación no está explícita en ninguna parte de nuestro pipeline, resultó más simple colocarlos como secretos luego de su creación.
+
+Los secretos de Email User, Email Pass y Repo Owner Mail son necesarios para el envío de correo cuando se crea un Pull Request.
+
+El Sonar Token es necesario para la realización del análisis de código de SonarQube.
 ---
 
 ## 🌿 Estrategia Git Flow
 
 La estrategia elegida fue **Git Flow**. Si bien entendemos que la estrategia **Trunk Based** tiene características útiles (promueve integración continua, especialmente útil en proyectos pequeños), decidimos utilizar **Git Flow** ya que nos permite observar más atentamente los cambios realizados a la rama principal.
 
-Dado que todavía estamos aprendiendo cómo utilizar las tecnologías enseñadas en clase, consideramos que un monitoreo más a fondo de lo que se incorpora es la estrategia que más se alinea con nuestra forma de trabajo. Al utilizar esta estrategia, sabemos que lo que se integra a la rama `main` está funcionando correctamente.
+Dado que todavía estamos aprendiendo cómo utilizar las tecnologías enseñadas en clase, consideramos que un monitoreo más a fondo de lo que se incorpora a la rama principal es la estrategia que más se alinea con nuestra forma de trabajo. Al utilizar esta estrategia, sabemos que lo que se integra a `main` está funcionando correctamente.
 
 ### ✅ Entornos bien definidos y separados
 El proyecto tiene ramas bien diferenciadas que se alinean con Git Flow:
-- `develop`: para desarrollo
+- `dev`: para desarrollo
 - `test`: para validación antes de producción
 - `main`: versión estable y en producción
 
 ### 📦 Control sobre versiones y despliegues
 Git Flow permite:
 - Controlar cuándo se libera una nueva versión
-- Aplicar hotfixes sin afectar `develop`
+- Aplicar hotfixes sin afectar `dev`
 - Mantener la estabilidad en `main` mientras se desarrollan nuevas funcionalidades
 
 ### 🔁 Integración con flujos CI/CD por ramas
@@ -49,7 +60,7 @@ Git Flow permite:
 - Git Flow encaja naturalmente con pipelines CI/CD basados en tags por rama
 
 ### 🛡️ Aislación de features y bugs
-- Ramas específicas para nuevas features sin romper `develop`
+- Ramas específicas para nuevas features sin romper `dev`
 - Hotfixes críticos directamente sobre `main`
 - Mayor seguridad antes de llegar a producción
 
@@ -59,9 +70,9 @@ Git Flow permite:
 
 ## 📁 Estrategia de Repositorio para Infraestructura
 
-Decidimos usar **el mismo repositorio** para la carpeta de infraestructura.  
-Esto nos resulta más práctico para un proyecto pequeño como este, ya que podemos realizar cambios tanto en la aplicación como en la infraestructura desde un mismo lugar.  
-Si el proyecto fuera más grande, sí consideraríamos separar el código de infraestructura en un repositorio exclusivo para facilitar su reutilización.
+Decidimos usar **el mismo repositorio** para la carpeta de infraestructura. 
+
+Esto nos resulta más práctico para un proyecto pequeño como este, ya que podemos realizar cambios tanto en la aplicación como en la infraestructura desde un mismo lugar. Si el proyecto fuera más grande, sí consideraríamos separar el código de infraestructura en un repositorio exclusivo para facilitar su reutilización.
 
 ---
 
@@ -81,12 +92,24 @@ Componentes:
 ## 🚀 Flow de CI/CD
 
 1. **Push a una rama (`dev`, `test`, `main`)**
+   - Se configuran credenciales AWS
+   - Se crean repositorios ECR para imágenes
    - Se genera una nueva imagen Docker con tag único
-   - Se sube la imagen a ECR correspondiente al entorno
+   - Se sube la imagen a ECR con tag de entorno
    - Se actualiza el archivo `docker-compose.generated.yml` con el tag generado
-   - El archivo `docker-compose.generated.yml` se sube a un bucket S3
+   - El archivo `docker-compose.generated.yml` se sube a bucket S3
+   - Se crea repositorio para Lambda
+   - Se genera una imagen para backup utilizando Lambda
+   - Se sube la imagen a ECR
+   - Se crea la infraestructura común a todos los ambientes (network)
+   - Se crea la infrastructura correspondiente al ambiente del push
+   - Se despliegan manifiestos K8s
+   - Se realiza testing de carga en ALBs creados por K8s (Vote y Result)
+   - Se invoca función Lambda
 
-🛠️ Diagrama de Flujo - Build & Push a ECR (Voting App)
+   - Se envía notificación por correo electrónico
+
+🛠️ Diagrama de Flujo - CI/CD Voting App
 ```text
 Inicio
 └── 🔹 Push a rama (dev, test, main)
@@ -98,19 +121,38 @@ Inicio
                 ├── aws ecr get-login-password
                 └── docker login con el token generado
                     └── 🟧 Generar tag único
-                        ├── Obtener hash corto del commit (GIT_COMMIT)
+                        ├── obtener hash corto del commit (GIT_COMMIT)
                         └── Formato: voting-app:<ambiente>-<GIT_COMMIT>
-                            └── 🟦 Construcción de imagen
+                            └── 🟦 Construcción de imágenes
                                 └── docker build -t voting-app:<tag> .
                                     └── 🟩 Subir imagen a ECR
                                         ├── docker tag → apuntar al repo ECR
                                         └── docker push → subir imagen
                                             └── 📝 Actualizar archivo docker-compose.generated.yml
-                                                ├── Reemplazar tag de imagen
-                                                └── Guardar archivo actualizado
-                                                    └── ✅ Fin
-                                                        ├── Imagen disponible en ECR
-                                                        └── Archivo listo para despliegue
+                                                ├── reemplazar tag de imagen
+                                                └── guardar archivo actualizado
+                                                    └── ✅ Archivo listo para despliegue
+                                                        └── imagen disponible en ECR
+                                                            └── 🟨 Construcción de imagen Lambda
+                                                                └── docker build -t lambda-backup ./lambda-backup
+                                                                     └── 🟧 Subir imagen a ECR
+                                                                          ├── docker tag → apuntar al repo ECR
+                                                                          └── docker push → subir imagen
+                                                                              └── 🟦 Creación de infra con Terraform
+                                                                                   ├── terraform init y apply: capa network
+                                                                                   ├── tfstate network guardado en bucket
+                                                                                   ├── terraform init y apply: capa ambiente actual
+                                                                                   └── tfstate ambiente guardado en bucket
+                                                                                       └── 🟩 Despliegue de Kubernetes
+                                                                                            ├── reemplazo de variables en manifiestos
+                                                                                            ├── aws eks update-kubeconfig
+                                                                                            └── kubectl apply -f k8s-specifications
+                                                                                                └── 🔍 Realizar testing de carga
+                                                                                                     ├── seteo de ambiente
+                                                                                                     ├── corre test en ALB de Vote
+                                                                                                     ├── obtiene tabla de restultados
+                                                                                                     ├── corre test en ALB de Results
+                                                                                                     └── obtiene tabla de restultados
 
 
 ```
@@ -153,9 +195,9 @@ Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
    - Reduce el riesgo de errores al evitar que cambios en desarrollo afecten producción.
    - Facilita pruebas y validaciones antes de promover cambios.
      
- **Modularidad y reutilización**
+ **Reutilización**
  
- La carpeta network define infraestructura en común para todos los ambientes, VPC, IGW, etc
+ La carpeta network define infraestructura en común para todos los ambientes, VPC, IGW, etc. 
 
  **Escalabilidad**
  
@@ -163,11 +205,15 @@ Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
 
  **Gestión de variables por entorno**
 
-Cada entorno tiene su propio terraform.tfvars, permite definir configuraciones específicas (nombres, tamaños, regiones, etc.) sin duplicar lógica, mejora la trazabilidad y el control de cambios.
+ Cada entorno tiene su propio terraform.tfvars, permite definir configuraciones específicas (nombres, tamaños, regiones, etc.) sin duplicar lógica, mejora la trazabilidad y el control de cambios.
  
-**Cumplimiento y auditoría**
+ **Cumplimiento y auditoría**
 
-Separar entornos ayuda a cumplir con políticas de seguridad y auditoría.
+ Separar entornos ayuda a cumplir con políticas de seguridad y auditoría.
+
+ **Prácticas Devops**
+ 
+ Se tomaron en consideración las prácticas más comunes de Devops. Cada ambiente tiene su propio cluster EKS (en vez de tener un solo cluster con tres namespaces).
 
 ---
 
@@ -269,3 +315,13 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 👉 Más información sobre CodeQL: [https://codeql.github.com/docs/](https://codeql.github.com/docs/)
 
 ---
+
+## 📸 Tablero Kanban
+
+Primera etapa:
+![IMG/Trello 1.png](IMG/Trello%201.png)
+
+Segunda etapa:
+![IMG/Trello 2.png](IMG/Trello%202.png)
+
+Tercera etapa:
