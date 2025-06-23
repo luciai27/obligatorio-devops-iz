@@ -52,20 +52,48 @@
 # Establecer el handler de entrada (no cambiar si usás lambda_function.lambda_handler)
 # CMD ["lambda_function.lambda_handler"]
 
-FROM public.ecr.aws/lambda/provided:al2
+#FROM public.ecr.aws/lambda/provided:al2
 
 # Instalar bash, curl, unzip, awscli y kubectl
-RUN yum install -y unzip curl tar gzip bash less \
- && curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
- && chmod +x kubectl \
- && mv kubectl /usr/local/bin/ \
- && yum install -y awscli \
- && yum clean all
+#RUN yum install -y unzip curl tar gzip bash less \
+# && curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+# && chmod +x kubectl \
+# && mv kubectl /usr/local/bin/ \
+# && yum install -y awscli \
+# && yum clean all
 
 # Copiar el script
+#COPY lambda-entrypoint.sh /var/task/lambda-entrypoint.sh
+#RUN chmod +x /var/task/lambda-entrypoint.sh
+
+# Definir el entrypoint del contenedor
+#CMD ["/var/task/lambda-entrypoint.sh"]
+
+# -------- STAGE 1: Build image with all tools --------
+FROM amazonlinux:2 as builder
+
+RUN yum update -y && \
+    yum install -y unzip curl tar gzip bash less shadow-utils \
+    && curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+    && chmod +x kubectl \
+    && mv kubectl /usr/local/bin/kubectl \
+    && yum install -y awscli \
+    && yum clean all
+
+# -------- STAGE 2: Final Lambda image --------
+FROM public.ecr.aws/lambda/provided:al2
+
+# Copiar binarios necesarios desde el builder
+COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
+COPY --from=builder /usr/bin/aws /usr/bin/aws
+COPY --from=builder /usr/lib/aws /usr/lib/aws
+COPY --from=builder /usr/share/aws-cli /usr/share/aws-cli
+COPY --from=builder /etc/alternatives/aws /etc/alternatives/aws
+
+# Copiar script
 COPY lambda-entrypoint.sh /var/task/lambda-entrypoint.sh
 RUN chmod +x /var/task/lambda-entrypoint.sh
 
-# Definir el entrypoint del contenedor
+# Lambda handler
 CMD ["/var/task/lambda-entrypoint.sh"]
 
