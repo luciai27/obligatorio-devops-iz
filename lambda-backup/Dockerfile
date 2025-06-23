@@ -70,30 +70,34 @@
 #CMD ["/var/task/lambda-entrypoint.sh"]
 
 # -------- STAGE 1: Build image with all tools --------
-FROM amazonlinux:2 as builder
+FROM amazonlinux:2 AS builder
 
+RSHELL ["/bin/bash", "-c"]
+
+# Actualizar e instalar herramientas necesarias
 RUN yum update -y && \
-    yum install -y unzip curl tar gzip bash less shadow-utils \
-    && curl -LO "https://dl.k8s.io/release/$(curl -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
-    && chmod +x kubectl \
-    && mv kubectl /usr/local/bin/kubectl \
-    && yum install -y awscli \
-    && yum clean all
+    yum install -y unzip curl tar gzip bash less shadow-utils awscli && \
+    yum clean all
 
-# -------- STAGE 2: Final Lambda image --------
+# Descargar kubectl con versión fija o dinámica
+ENV KUBECTL_VERSION=$(curl -s https://dl.k8s.io/release/stable.txt)
+RUN curl -LO https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
+    chmod +x kubectl && \
+    mv kubectl /usr/local/bin/kubectl
+
+# ---------- STAGE 2 ----------
 FROM public.ecr.aws/lambda/provided:al2
 
-# Copiar binarios necesarios desde el builder
-COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
-COPY --from=builder /usr/bin/aws /usr/bin/aws
+# Copiar binarios desde el builder
+COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/
+COPY --from=builder /usr/bin/aws /usr/bin/
 COPY --from=builder /usr/lib/aws /usr/lib/aws
 COPY --from=builder /usr/share/aws-cli /usr/share/aws-cli
 COPY --from=builder /etc/alternatives/aws /etc/alternatives/aws
 
-# Copiar script
+# Copiar el script
 COPY lambda-entrypoint.sh /var/task/lambda-entrypoint.sh
 RUN chmod +x /var/task/lambda-entrypoint.sh
 
-# Lambda handler
+# EntryPoint Lambda
 CMD ["/var/task/lambda-entrypoint.sh"]
-
