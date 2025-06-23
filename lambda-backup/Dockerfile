@@ -89,9 +89,9 @@ RUN curl -LO https://dl.k8s.io/release/v1.31.2/bin/linux/amd64/kubectl && \
 FROM public.ecr.aws/lambda/provided:al2
 
 # Copiar binarios desde el builder
-COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/
+COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=builder /usr/bin/aws /usr/bin/
-COPY --from=builder /usr/lib/aws /usr/lib/aws
+#COPY --from=builder /usr/lib/aws /usr/lib/aws
 #COPY --from=builder /usr/share/aws-cli /usr/share/aws-cli
 #COPY --from=builder /etc/alternatives/aws /etc/alternatives/aws
 
