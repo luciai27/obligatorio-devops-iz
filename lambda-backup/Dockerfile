@@ -92,8 +92,8 @@ FROM public.ecr.aws/lambda/provided:al2
 COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/
 COPY --from=builder /usr/bin/aws /usr/bin/
 COPY --from=builder /usr/lib/aws /usr/lib/aws
-COPY --from=builder /usr/share/aws-cli /usr/share/aws-cli
-COPY --from=builder /etc/alternatives/aws /etc/alternatives/aws
+#COPY --from=builder /usr/share/aws-cli /usr/share/aws-cli
+#COPY --from=builder /etc/alternatives/aws /etc/alternatives/aws
 
 # Copiar el script
 COPY lambda-entrypoint.sh /var/task/lambda-entrypoint.sh
