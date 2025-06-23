@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 
 #BACKUP_FILE="/tmp/eks-backup-$(date +%Y%m%d-%H%M%S).yaml"
