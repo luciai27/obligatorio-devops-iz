@@ -33,8 +33,8 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
 
 # Copiar el script
-COPY lambda-entrypoint.sh /var/task/lambda-entrypoint.sh
-RUN chmod +x /var/task/lambda-entrypoint.sh
+COPY lambda-entrypoint.sh /var/task/bootstrap
+RUN chmod +x /var/task/bootstrap
 
-CMD ["/var/task/lambda-entrypoint.sh"]
+#CMD ["/var/task/lambda-entrypoint.sh"]
 
