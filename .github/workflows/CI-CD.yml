@@ -53,17 +53,23 @@ jobs:
 
       - name: Create ECR repository if not existe
         run: |
-          aws ecr describe-repositories --repository-names lambda-backup || \
-          aws ecr create-repository --repository-name lambda-backup
+          aws ecr describe-repositories --repository-names lambda-healthcheck || \
+          aws ecr create-repository --repository-name lambda-healthcheck
          
     
+#      - name: Build and Push Lambda image
+#        run: |
+#          docker build -t lambda-backup ./lambda-backup
+#          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
+#          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
+#          docker push $ECR_BASE_URL/lambda-backup:latest
+
       - name: Build and Push Lambda image
         run: |
-          docker build -t lambda-backup ./lambda-backup
-          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
+          docker build -t lambda-healthcheck ./lambda-backup
+          docker tag lambda-healthcheck:latest $ECR_BASE_URL/lambda-healthcheck:latest
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
-          docker push $ECR_BASE_URL/lambda-backup:latest
-
+          docker push $ECR_BASE_URL/lambda-healthcheck:latest
 
       - name: Terraform Init + Apply - Network Layer
         working-directory: infra/network
@@ -121,16 +127,22 @@ jobs:
 #          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
 
          
-      - name: Invoke Lambda Backup
-        if: success()
-        run: |
-          aws lambda invoke \
-            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
-            --region $AWS_REGION \
-            --log-type Tail \
-            lambda_response.json
-          cat lambda_response.json
+#      - name: Invoke Lambda Backup
+#        if: success()
+#        run: |
+#          aws lambda invoke \
+#            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
+#            --region $AWS_REGION \
+#            --log-type Tail \
+#            lambda_response.json
+#          cat lambda_response.json
 
+      - name: Terraform Apply
+        run: |
+          terraform apply -auto-approve \
+            -var="alb_url=${{ secrets.ALB_RESULT }}" \
+            -var="aglb2_url=${{ secrets.ALB_VOTE }}" \
+            -var="sns_topic_arn=arn:aws:sns:us-east-1:186478816830:RedshiftSNS"
 
       - name: Email notification
         if: success()
