@@ -1,53 +1,44 @@
 import os
-import boto3
 import subprocess
-from datetime import datetime
+import datetime
+import boto3
 
 def lambda_handler(event, context):
-    region = os.environ.get("REGION")
-    cluster_name = os.environ.get("CLUSTER_NAME")
-    bucket_name = os.environ.get("BUCKET_NAME")
-
-    timestamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
-    backup_file = f"/tmp/eks-backup-{timestamp}.yaml"
-
     try:
-        # Configurar kubeconfig del cluster
-        print("Actualizando kubeconfig para el cluster...")
-        subprocess.check_call([
+        region = os.environ["REGION"]
+        cluster_name = os.environ["CLUSTER_NAME"]
+        bucket_name = os.environ["BUCKET_NAME"]
+
+        timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        backup_file = f"/tmp/eks-backup-{timestamp}.yaml"
+
+        print("🔹 Starting EKS backup")
+        print(f"🔹 Region: {region}")
+        print(f"🔹 Cluster: {cluster_name}")
+        print(f"🔹 Bucket: {bucket_name}")
+
+        # Actualizar kubeconfig
+        subprocess.run([
             "aws", "eks", "update-kubeconfig",
             "--region", region,
             "--name", cluster_name
-        ])
+        ], check=True)
 
-        # Ejecutar el backup
-        print("Ejecutando backup con kubectl...")
+        # Exportar recursos Kubernetes
         with open(backup_file, "w") as f:
-            subprocess.check_call(
+            subprocess.run(
                 ["kubectl", "get", "all", "--all-namespaces", "-o", "yaml"],
-                stdout=f
+                stdout=f,
+                check=True
             )
 
         # Subir a S3
-        print("Subiendo backup a S3...")
-        s3 = boto3.client("s3")
-        s3.upload_file(backup_file, bucket_name, f"eks-backups/{os.path.basename(backup_file)}")
+        s3_client = boto3.client("s3", region_name=region)
+        s3_client.upload_file(backup_file, bucket_name, os.path.basename(backup_file))
 
-        return {
-            "statusCode": 200,
-            "body": f"Backup subido a s3://{bucket_name}/eks-backups/{os.path.basename(backup_file)}"
-        }
+        print(f"✅ Backup uploaded to s3://{bucket_name}/{os.path.basename(backup_file)}")
+        return {"status": "success", "file": backup_file}
 
-    except subprocess.CalledProcessError as e:
-        print(f"Error ejecutando comando: {e}")
-        return {
-            "statusCode": 500,
-            "body": f"Fallo al ejecutar comando: {e}"
-        }
-
-    except Exception as ex:
-        print(f"Error general: {ex}")
-        return {
-            "statusCode": 500,
-            "body": f"Error general: {ex}"
-        }
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        raise

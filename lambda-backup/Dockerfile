@@ -1,40 +1,25 @@
-# -------- STAGE 1: builder --------
-FROM amazonlinux:2 AS builder
+FROM public.ecr.aws/lambda/python:3.11
 
-SHELL ["/bin/bash", "-c"]
-
-# Instalar dependencias comunes
-RUN yum update -y && \
-    yum install -y unzip curl tar gzip bash less shadow-utils && \
+# Instalar utilidades necesarias
+RUN yum install -y unzip curl jq gettext bash git tar gzip less shadow-utils && \
     yum clean all
 
-# Instalar kubectl versión fija
-ENV KUBECTL_VERSION=v1.30.1
-RUN curl -LO "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
-    chmod +x kubectl && mv kubectl /usr/local/bin/kubectl
+# Instalar kubectl
+ENV KUBECTL_VERSION=1.31.2
+RUN curl -LO "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" && \
+    chmod +x kubectl && mv kubectl /usr/local/bin/
 
-# -------- STAGE 2: Lambda runtime --------
-FROM public.ecr.aws/lambda/provided:al2
-
-SHELL ["/bin/bash", "-c"]
-
-# Instalar dependencias para bash, curl, unzip
-RUN yum update -y && \
-    yum install -y bash curl unzip tar gzip less shadow-utils && \
-    yum clean all
-
-# Instalar AWS CLI v2 directamente en esta imagen
+# Instalar AWS CLI
 RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install && \
-    rm -rf aws awscliv2.zip
+    unzip awscliv2.zip && ./aws/install
 
-# Copiar kubectl desde el builder
-COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
+ENV PATH="/usr/local/aws-cli/v2/current/bin:${PATH}"
 
-# Copiar el script
-COPY lambda-entrypoint.sh /var/task/bootstrap
-RUN chmod +x /var/task/bootstrap
+# Copiar función lambda
+COPY lambda_function.py ${LAMBDA_TASK_ROOT}
 
-#CMD ["/var/task/lambda-entrypoint.sh"]
+# Instalar boto3 (aunque Lambda lo incluye por defecto)
+RUN pip install boto3
 
+# Establecer el handler
+CMD ["lambda_function.lambda_handler"]
