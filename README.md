@@ -27,9 +27,9 @@ Estas variables deben estar configuradas como *Secrets* en GitHub:
 
 Los primeros cuatro secretos corresponden a configuraciones de AWS, por lo que siempre son necesarios para poder acceder correctamente a los servicios.
 
-El Bucket Name es necesario ya que, al ser dos personas las que estamos trabajando en el proyecto y dado que los buckets de S3 deben tener nombres únicos, no es posible utilizar un mismo nombre en cuentas diferentes. Esto fue algo que se tuvo que parametrizar.
+El Bucket Name es necesario ya que, al ser dos personas las que estamos trabajando en el proyecto y dado que los buckets de S3 deben tener nombres únicos, no es posible utilizar un mismo nombre en cuentas diferentes. Esto fue algo que se tuvo que parametrizar (y, por lo tanto, el mismo debe ser creado manualmente **antes** de correr el pipeline).
 
-Los enlaces a los ALBs (ALB Result y ALB Vote) son necesarios como secretos ya que la creación de los ALBs es automatizada por AWS gracias a la forma en que configuramos los K8s. Dado que su creación no está explícita en ninguna parte de nuestro pipeline, resultó más simple colocarlos como secretos luego de su creación.
+Los enlaces a los ALBs (ALB Result y ALB Vote) son necesarios como secretos ya que la creación de los ALBs es automatizada por AWS gracias a la forma en que configuramos los K8s. Dado que su creación no está explícita en ninguna parte de nuestro pipeline, resultó más simple colocarlos como secretos luego de su creación. Este secreto debe ser seteado manualmente luego de finalizada la primera corrida del pipeline para cada ambiente.
 
 Los secretos de Email User, Email Pass y Repo Owner Mail son necesarios para el envío de correo cuando se crea un Pull Request.
 

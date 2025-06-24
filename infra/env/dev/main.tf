@@ -91,4 +91,49 @@ resource "aws_eks_node_group" "node_group" {
   depends_on = [aws_eks_cluster.eks]
 }
 
+data "aws_instances" "eks_nodes" {
+  filter {
+    name   = "tag:Name"
+    values = [var.node_group_name]
+  }
 
+  filter {
+    name   = "instance-state-name"
+    values = ["running"]
+  }
+
+  depends_on = [aws_eks_node_group.node_group]
+}
+
+resource "aws_cloudwatch_dashboard" "vote" {
+  dashboard_name = "dashboard-vote"
+
+  dashboard_body = jsonencode({
+    widgets = flatten([
+      for instance_id in data.aws_instances.eks_nodes.ids : [
+        {
+          type   = "metric"
+          x      = 0
+          y      = 0
+          width  = 12
+          height = 6
+
+          properties = {
+            metrics = [
+              [
+                "AWS/EC2",
+                "CPUUtilization",
+                "InstanceId",
+                instance_id
+              ]
+            ]
+            period = 300
+            stat   = "Average"
+            region = "us-east-1"
+            title  = "EC2 CPU Utilization - ${instance_id}"
+          }
+        }
+      ]
+    ])
+  })
+}
