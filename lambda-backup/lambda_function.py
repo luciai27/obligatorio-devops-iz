@@ -12,6 +12,8 @@ def lambda_handler(event, context):
         timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         backup_file = f"/tmp/eks-backup-{timestamp}.yaml"
 
+        kubeconfig_file = "/tmp/kubeconfig"  #nuevo
+
         print("🔹 Starting EKS backup")
         print(f"🔹 Region: {region}")
         print(f"🔹 Cluster: {cluster_name}")
@@ -22,12 +24,14 @@ def lambda_handler(event, context):
             "aws", "eks", "update-kubeconfig",
             "--region", region,
             "--name", cluster_name
+            "--kubeconfig", kubeconfig_file  #nuevo
         ], check=True)
 
         # Exportar recursos Kubernetes
         with open(backup_file, "w") as f:
             subprocess.run(
-                ["kubectl", "get", "all", "--all-namespaces", "-o", "yaml"],
+                #["kubectl", "get", "all", "--all-namespaces", "-o", "yaml"],
+                ["kubectl", "--kubeconfig", kubeconfig_file, "get", "all", "--all-namespaces", "-o", "yaml"], #cambio
                 stdout=f,
                 check=True
             )
