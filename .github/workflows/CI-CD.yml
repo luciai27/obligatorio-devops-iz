@@ -82,10 +82,25 @@ jobs:
 #        run: |
 #          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
 #          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
+         run: |
 
-        run: |
-          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate" \
-          terraform apply -auto-approve -input=false -var-file="terraform.tfvars" -var="alb_url=${{ secrets.ALB_RESULT }}" -var="aglb2_url=${{ secrets.ALB_VOTE }}" -var="sns_topic_arn=arn:aws:sns:us-east-1:186478816830:RedshiftSNS"
+          terraform init \
+
+          -backend-config="bucket=${{ secrets.BUCKET_NAME }}" \
+
+          -backend-config="region=${{ secrets.AWS_REGION }}" \
+
+          -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate" 
+ 
+          terraform apply -auto-approve -input=false -var-file="terraform.tfvars" \
+
+          -var="alb_url=${{ secrets.ALB_RESULT }}" \
+
+          -var="aglb2_url=${{ secrets.ALB_VOTE }}" \
+
+          -var="sns_topic_arn=arn:aws:sns:us-east-1:186478816830:RedshiftSNS"
+  
+        
  
 
       - name: Replace AWS ID in manifest
