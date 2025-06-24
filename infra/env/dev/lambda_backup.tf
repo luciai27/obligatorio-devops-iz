@@ -20,7 +20,7 @@
 
 resource "aws_lambda_function" "check_health" {
   function_name = "check-health-${var.environment}"
-  role          = "arn:aws:iam::330090896481:role/LabRole"
+  role          = data.aws_iam_role.lab_role.arn
   package_type  = "Image"
   image_uri     = "330090896481.dkr.ecr.us-east-1.amazonaws.com/lambda-healthcheck:latest"
   timeout       = 60
