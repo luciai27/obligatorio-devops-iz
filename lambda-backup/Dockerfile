@@ -17,6 +17,10 @@ RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2
 # Imagen final basada en Lambda Python
 FROM public.ecr.aws/lambda/python:3.10
 
+
+# Install AWS Lambda runtime interface client (REQUIRED) - Lo nuevo que agregué yo
+RUN pip install --no-cache-dir awslambdaric
+
 # Copiar binarios desde builder
 COPY --from=builder /usr/local/bin/kubectl /usr/local/bin/kubectl
 COPY --from=builder /usr/local/bin/aws /usr/local/bin/aws

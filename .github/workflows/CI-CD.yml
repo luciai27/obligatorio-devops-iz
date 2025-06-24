@@ -121,15 +121,15 @@ jobs:
 #          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
 
          
-#      - name: Invoke Lambda Backup
-#        if: success()
-#        run: |
-#          aws lambda invoke \
-#            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
-#            --region $AWS_REGION \
-#            --log-type Tail \
-#            lambda_response.json
-#          cat lambda_response.json
+      - name: Invoke Lambda Backup
+        if: success()
+        run: |
+          aws lambda invoke \
+            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
+            --region $AWS_REGION \
+            --log-type Tail \
+            lambda_response.json
+          cat lambda_response.json
 
 
       - name: Email notification
