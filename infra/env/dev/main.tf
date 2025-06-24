@@ -157,6 +157,25 @@ resource "aws_cloudwatch_metric_alarm" "cpu_utilization_alarm" {
   alarm_actions      = [aws_sns_topic_subscription.email_subscription.arn]
 }
  
+resource "aws_cloudwatch_metric_alarm" "memory_utilized_alarm" {
+  alarm_name          = "memory-utilized-eks-cluster"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "MemoryUtilized"
+  namespace           = "ContainerInsights"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "80"
+  treat_missing_data = "notBreaching"
+ 
+  dimensions = {
+    ClusterName = var.cluster_name
+  }
+ 
+  alarm_description  = "Alarma cuando la utilización de memoria excede el 80%"
+  alarm_actions      = [aws_sns_topic_subscription.email_subscription.arn]
+}
+
 resource "aws_sns_topic" "alarm_topic" {
   name = "eks-alarms"
 }
