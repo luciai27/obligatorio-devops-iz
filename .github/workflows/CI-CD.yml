@@ -136,34 +136,32 @@ jobs:
 #          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
 
          
-#      - name: Invoke Lambda Backup
-#        if: success()
-#        run: |
-#          aws lambda invoke \
-#            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
-#            --region $AWS_REGION \
-#            --log-type Tail \
-#            lambda_response.json
-#          cat lambda_response.json
-
-      - name: Invoke Lambda check-health
-        uses: aws-actions/aws-lambda-invoke@v1
-        with:
-          function-name: check-health-dev
-          payload: |
-            {
+      - name: Invoke Lambda Backup
+        if: success()
+        run: |
+          aws lambda invoke \
+            --function-name check-health-dev \
+            --payload '{
               "ALB": "${{ secrets.ALB_RESULT }}",
               "AGLB2": "${{ secrets.ALB_VOTE }}",
-              "SNS_TOPIC_ARN": "sns_topic_arn=arn:aws:sns:us-east-1:330090896481:RedshiftSNS"
-            }
-          region: us-east-1
+              "SNS_TOPIC_ARN": "arn:aws:sns:us-east-1:330090896481:RedshiftSNS"
+            }' \
+            --cli-binary-format raw-in-base64-out \
+            response.json
+          cat response.json
 
-#      - name: Terraform Apply
-#        run: |
-#          terraform apply -auto-approve \
-#            -var="alb_result=${{ secrets.ALB_RESULT }}" \
-#            -var="alb_vote=${{ secrets.ALB_VOTE }}" \
-#            -var="sns_topic_arn=arn:aws:sns:us-east-1:330090896481:RedshiftSNS"
+
+#      - name: Invoke Lambda check-health
+#        uses: aws-actions/aws-lambda-invoke@v1
+#        with:
+#          function-name: check-health-dev
+#          payload: |
+#            {
+#              "ALB": "${{ secrets.ALB_RESULT }}",
+#              "AGLB2": "${{ secrets.ALB_VOTE }}",
+#              "SNS_TOPIC_ARN": "sns_topic_arn=arn:aws:sns:us-east-1:330090896481:RedshiftSNS"
+#            }
+#          region: us-east-1
 
       - name: Email notification
         if: success()
