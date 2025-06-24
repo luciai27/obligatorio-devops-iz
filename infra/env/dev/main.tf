@@ -137,3 +137,32 @@ resource "aws_cloudwatch_dashboard" "vote" {
     ])
   })
 }
+
+resource "aws_cloudwatch_metric_alarm" "cpu_utilization_alarm" {
+  alarm_name          = "cpu-utilization-eks-cluster"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CpuUtilized"
+  namespace           = "ContainerInsights"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "80"
+  treat_missing_data = "notBreaching"
+ 
+  dimensions = {
+    ClusterName = var.cluster_name
+  }
+ 
+  alarm_description  = "Alarma cuando la utilización de CPU excede el 80%"
+  alarm_actions      = [aws_sns_topic_subscription.email_subscription.arn]
+}
+ 
+resource "aws_sns_topic" "alarm_topic" {
+  name = "eks-alarms"
+}
+ 
+resource "aws_sns_topic_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.alarm_topic.arn
+  protocol  = "email"
+  endpoint  = "luciaibarburu@hotmail.com"
+}
