@@ -23,7 +23,7 @@ def lambda_handler(event, context):
         subprocess.run([
             "aws", "eks", "update-kubeconfig",
             "--region", region,
-            "--name", cluster_name
+            "--name", cluster_name,
             "--kubeconfig", kubeconfig_file  #nuevo
         ], check=True)
 
