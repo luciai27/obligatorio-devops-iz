@@ -93,8 +93,8 @@ resource "aws_eks_node_group" "node_group" {
 
 data "aws_instances" "eks_nodes" {
   filter {
-    name   = "tag:Name"
-    values = [var.node_group_name]
+    name   = "subnet-id"
+    values = aws_subnet.public[*].id
   }
 
   filter {
