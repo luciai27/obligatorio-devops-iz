@@ -140,9 +140,9 @@ jobs:
       - name: Terraform Apply
         run: |
           terraform apply -auto-approve \
-            -var="alb_url=${{ secrets.ALB_RESULT }}" \
-            -var="aglb2_url=${{ secrets.ALB_VOTE }}" \
-            -var="sns_topic_arn=arn:aws:sns:us-east-1:186478816830:RedshiftSNS"
+            -var="alb_result=${{ secrets.ALB_RESULT }}" \
+            -var="alb_vote=${{ secrets.ALB_VOTE }}" \
+            -var="sns_topic_arn=arn:aws:sns:us-east-1:330090896481:RedshiftSNS"
 
       - name: Email notification
         if: success()
