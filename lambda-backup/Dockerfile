@@ -1,4 +1,4 @@
-FROM public.ecr.aws/lambda/python:3.11
+FROM public.ecr.aws/lambda/python:3.10
 
 # Instalar utilidades necesarias
 RUN yum install -y unzip curl jq gettext bash git tar gzip less shadow-utils && \
