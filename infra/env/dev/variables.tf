@@ -30,9 +30,13 @@ variable "node_group_name" {
   description = "The name of the EKS node group"
   type        = string
 }
+
 variable "backup_bucket" {
   description = "The name of the S3 bucket for backups"
   type        = string
-  default     = "votingapp-states"
 }
 
+variable "aws_account_id" {
+  description = "AWS account ID used for the Lambda image URI"
+  type        = string
+}

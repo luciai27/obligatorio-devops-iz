@@ -73,8 +73,17 @@ jobs:
       - name: Terraform Init + Apply - Env Layer
         working-directory: infra/env/${{ steps.set_env.outputs.env }}
         run: |
-          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
-          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+          terraform init \
+            -backend-config="bucket=${{ secrets.BUCKET_NAME }}" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
+
+          terraform apply -auto-approve -input=false \
+            -var-file="terraform.tfvars" \
+            -var="backup_bucket=${{ secrets.BUCKET_NAME }}" \
+            -var="aws_account_id=$ACCOUNT_ID"
 
       - name: Replace AWS ID in manifest
         run: |
