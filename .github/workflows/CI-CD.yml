@@ -124,7 +124,7 @@ jobs:
         if: success()
         run: |
           aws lambda invoke \
-            --function-name check-health-dev \
+            --function-name eks_backup \
             --region $AWS_REGION \
             --log-type Tail \
             lambda_response.json
