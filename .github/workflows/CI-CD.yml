@@ -114,8 +114,8 @@ jobs:
    
       - name: Invocar Lambda con ALBs
         env:
-          ALB_RESULT: ${{ secrets.ALB_RESULT }}
-          ALB_VOTE: ${{ secrets.ALB_VOTE }}
+          ALB_RESULT: "http://${{ secrets.ALB_RESULT }}:8081"
+          ALB_VOTE: "http://${{ secrets.ALB_VOTE }}:8080"
         run: |
           echo "Invocando Lambda con URLs: $ALB_RESULT y $ALB_VOTE"
         
