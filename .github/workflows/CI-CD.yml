@@ -46,35 +46,35 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build and Push Docker Images
-        run: |
-          chmod +x ./build-and-push.sh
-          ./build-and-push.sh
+#      - name: Build and Push Docker Images
+#        run: |
+#          chmod +x ./build-and-push.sh
+#          ./build-and-push.sh
 
-      - name: Create ECR repository if not existe
-        run: |
-          aws ecr describe-repositories --repository-names lambda-backup || \
-          aws ecr create-repository --repository-name lambda-backup
+#      - name: Create ECR repository if not existe
+#        run: |
+#          aws ecr describe-repositories --repository-names lambda-backup || \
+#          aws ecr create-repository --repository-name lambda-backup
          
     
-      - name: Build and Push Lambda image
-        run: |
-          docker build -t lambda-backup ./lambda-backup
-          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
-          docker push $ECR_BASE_URL/lambda-backup:latest
+#      - name: Build and Push Lambda image
+#        run: |
+#          docker build -t lambda-backup ./lambda-backup
+#          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
+#          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
+#          docker push $ECR_BASE_URL/lambda-backup:latest
 
-      - name: Terraform Init + Apply - Network Layer
-        working-directory: infra/network
-        run: |
-          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-network.tfstate"
-          terraform apply -auto-approve -input=false
+#      - name: Terraform Init + Apply - Network Layer
+#        working-directory: infra/network
+#        run: |
+#          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-network.tfstate"
+#          terraform apply -auto-approve -input=false
 
-      - name: Terraform Init + Apply - Env Layer
-        working-directory: infra/env/${{ steps.set_env.outputs.env }}
-        run: |
-          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
-          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
+#      - name: Terraform Init + Apply - Env Layer
+#        working-directory: infra/env/${{ steps.set_env.outputs.env }}
+#        run: |
+#          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
+#          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
 
       - name: Replace AWS ID in manifest
         run: |
@@ -94,7 +94,7 @@ jobs:
         run: |
           # Get only the first two load balancers
           output=$(aws elbv2 describe-load-balancers \
-            --region "${{ secrets.AWS_REGION }}" \
+            --region "$AWS_REGION" \
             --query "LoadBalancers[0:2].[LoadBalancerName,DNSName]" \
             --output json)
 
