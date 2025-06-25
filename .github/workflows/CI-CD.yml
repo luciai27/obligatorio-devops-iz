@@ -88,6 +88,15 @@ jobs:
 #        run: |
 #          aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
 #          kubectl apply -f k8s-specifications/
+      - name: Configure AWS credentials (assume specific role)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::208420141487:role/LabRole
+          role-session-name: github-actions-session
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Get Load Balancer Info and Export as Env Vars
         id: elb
