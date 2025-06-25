@@ -129,10 +129,6 @@ jobs:
             --payload "$PAYLOAD" \
             --cli-binary-format raw-in-base64-out \
             response.json
-      
-      - name: Mostrar respuesta
-        run: cat response.json
-        
         
       - name: Procesar resultado de Lambda
         id: lambda_result
@@ -148,6 +144,7 @@ jobs:
           else
             echo "status=fail" >> $GITHUB_OUTPUT
             subject="❌ Healthcheck FAIL - ${{ steps.set_env.outputs.env }}"
+            exit 1
           fi
 
           # Generar cuerpo del mail
