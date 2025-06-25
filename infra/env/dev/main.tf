@@ -81,7 +81,7 @@ resource "aws_eks_node_group" "node_group" {
   }
 
   instance_types = ["t3.small"]
-  ami_type       = "AL2023_x86_64"
+  ami_type       = "AL2023_x86_64_STANDARD"
 
   tags = {
     Name = var.node_group_name
