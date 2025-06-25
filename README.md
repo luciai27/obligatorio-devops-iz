@@ -182,9 +182,9 @@ Inicio
               |    outputs.tf
               |    terraform.tfvars
               |    variables.tf
-              |_ network
-                   main.tf
-                   output.tf
+            network
+                 main.tf
+                 output.tf
 
    
 ```
