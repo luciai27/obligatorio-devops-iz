@@ -251,6 +251,44 @@ Infrome de sonarQube
 ## Testing
    - Se ejecutan pruebas de carga con JMeter sobre el entorno correspondiente
 
+## Lambda url-checker 
+
+Verificación de disponibilidad de servicios
+Esta función Lambda fue desarrollada con el objetivo de monitorear la disponibilidad de los servicios frontend de la Voting App desplegados en AWS (por ejemplo, las aplicaciones vote y result publicadas detrás de ALBs).
+
+ ```
+/lambda
+   |_lambda.zip
+ ```
+
+   
+Se invoca automáticamente desde el pipeline de CI/CD en GitHub Actions, luego del despliegue de infraestructura y servicios, para verificar que las URLs estén accesibles y respondiendo correctamente.
+
+Permite detectar errores tempranos en el pipeline si algún servicio clave no responde (503, timeout, etc.).
+
+Facilita la automatización de health checks post-despliegue sin necesidad de herramientas externas.
+
+Aporta visibilidad del estado real de la aplicación al finalizar el CI/CD, integrando:
+
+Verificación HTTP de múltiples endpoints.
+
+Alerta automática por correo en caso de falla.
+
+Seguridad y buenas prácticas
+La función está empaquetada en ZIP incluyendo la librería requests como dependencia externa.
+
+Utiliza verify=False para ignorar certificados autofirmados durante el testeo, evitando falsos negativos en ambientes no productivos.
+
+Responde con un JSON estructurado con los resultados individuales por URL.
+
+La salida de la Lambda es procesada automáticamente en el pipeline.
+
+Si alguna URL no responde con 200 OK, el workflow:
+
+Se marca como fallido (exit 1)
+
+Envía un correo a un destinatario configurable con detalles del error
+
 ## Notificación
    - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
 
