@@ -131,7 +131,52 @@ jobs:
             response.json
       
       - name: Mostrar respuesta
-        run: cat response.json    
+        run: cat response.json
+        
+        
+      - name: Procesar resultado de Lambda
+        id: lambda_result
+        run: |
+          echo "Procesando resultado de Lambda..."
+          cat response.json
+
+          has_error=$(jq 'to_entries[] | select(.value != "OK")' response.json)
+
+          if [ -z "$has_error" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            subject="✅ Healthcheck OK - ${{ steps.set_env.outputs.env }}"
+          else
+            echo "status=fail" >> $GITHUB_OUTPUT
+            subject="❌ Healthcheck FAIL - ${{ steps.set_env.outputs.env }}"
+          fi
+
+          # Generar cuerpo del mail
+          body=$(jq -r 'to_entries[] | "\(.key): \(.value)"' response.json | sed 's/^/- /')
+
+          echo "subject=$subject" >> $GITHUB_OUTPUT
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Email notification de lambda result
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: ${{ steps.lambda_result.outputs.subject }}
+          to: gzunino@urudata.com 
+          #          to: ${{ secrets.REPO_OWNER_MAIL }}
+          from: "CI/CD Bot <${{ secrets.EMAIL_USER }}>"
+          body: |
+            Resultado del healthcheck en ambiente **${{ steps.set_env.outputs.env }}**:
+
+            ${{ steps.lambda_result.outputs.body }}
+
+            Repositorio: ${{ github.repository }}
+            Rama: ${{ github.ref_name }}
+            Ejecutado por: ${{ github.actor }}     
 
       - name: Email notification
         if: success()
