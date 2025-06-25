@@ -329,3 +329,13 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 ![IMG/Trello 2.png](IMG/Trello%202.png)
 
 ### Tercera etapa:
+
+
+
+### Decisiones de Diseño
+
+- Al utilizar el mismo repositorio en el codigo de la aplicación, como en la infraestructura, si en los pipeline (super-linter.yml o codeql-analysis.yml) el resultado es con error, como es un error de código igual se continúa con el despliegue de la infraestructura, esto sólo se aplica para el laboratorio. En el caso del laboratorio codeql-analysis, termina de forma correcta, y super-linter que hace una revision de html,css y yaml no, igual este último sólo se ejcuta cuando el branch es main.
+
+- En aws se utiliza una sola VPC, para los 3 cluster y 2 subnets por ambiente. Para cada ambiente se tiene un cluster, algunas de las razones fueron menor "Blast Radius", si hay un error humano, una configuración errónea o un incidente de seguridad en un ambiente, el impacto se limita a ese clúster específico. Es mucho más difícil afectar accidentalmente producción desde desarrollo. Ciclo de vida y pruebas independientes, puedes probar las actualizaciones de versión de Kubernetes en un clúster de desarrollo/QA antes de aplicarlas a producción. En un solo clúster, actualizar la versión del Kubernetes afectaría a todos los ambientes simultáneamente. Configuraciones de infraestructura específicas, cada clúster puede tener configuraciones de red, almacenamiento, balanceadores de carga o tipos de instancias subyacentes optimizadas para las necesidades específicas de ese ambiente (ej: menor costo en dev, alta disponibilidad y performance en prod).
+
+- 
