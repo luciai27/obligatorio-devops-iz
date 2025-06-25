@@ -57,19 +57,12 @@ jobs:
           aws ecr create-repository --repository-name lambda-healthcheck
          
     
-#      - name: Build and Push Lambda image
-#        run: |
-#          docker build -t lambda-backup ./lambda-backup
-#          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
-#          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
-#          docker push $ECR_BASE_URL/lambda-backup:latest
-
       - name: Build and Push Lambda image
         run: |
-          docker build -t lambda-healthcheck ./lambda-backup
-          docker tag lambda-healthcheck:latest $ECR_BASE_URL/lambda-healthcheck:latest
+          docker build -t lambda-backup ./lambda-backup
+          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
-          docker push $ECR_BASE_URL/lambda-healthcheck:latest
+          docker push $ECR_BASE_URL/lambda-backup:latest
 
       - name: Terraform Init + Apply - Network Layer
         working-directory: infra/network
@@ -79,18 +72,9 @@ jobs:
 
       - name: Terraform Init + Apply - Env Layer
         working-directory: infra/env/${{ steps.set_env.outputs.env }}
-#        run: |
-#          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
-#          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
         run: |
-          terraform init \
-          -backend-config="bucket=${{ secrets.BUCKET_NAME }}" \
-          -backend-config="region=${{ secrets.AWS_REGION }}" \
-          -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate" 
-          terraform apply -auto-approve -input=false -var-file="terraform.tfvars" \
-          -var="alb_result=${{ secrets.ALB_RESULT }}" \
-          -var="alb_vote=${{ secrets.ALB_VOTE }}" \
-          -var="sns_topic_arn=arn:aws:sns:us-east-1:330090896481:RedshiftSNS"
+          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
+          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
 
       - name: Replace AWS ID in manifest
         run: |
@@ -105,35 +89,35 @@ jobs:
           aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
           kubectl apply -f k8s-specifications/
 
-#      - name: Set up Python 3.10
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: '3.10'
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-#      - name: Install Java Runtime and Taurus dependencies
-#        run: |
-#          sudo apt update
-#          sudo apt install -y default-jre-headless python3-tk python3-dev libxml2-dev libxslt-dev zlib1g-dev net-tools
+      - name: Install Java Runtime and Taurus dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y default-jre-headless python3-tk python3-dev libxml2-dev libxslt-dev zlib1g-dev net-tools
 
-#      - name: Install Taurus (bzt)
-#        run: |
-#          python -m pip install --upgrade pip
-#          python -m pip install bzt
+      - name: Install Taurus (bzt)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install bzt
 
-#      - name: Run JMeter Test
-#        if: github.ref == 'refs/heads/dev'
-#        env:
-#          ALB_VOTE: ${{ secrets.ALB_VOTE }}
-#          ALB_RESULT: ${{ secrets.ALB_RESULT }}
-#          VOTE_PORT: "8080"
-#          RESULT_PORT: "8081"
+      - name: Run JMeter Test
+        if: github.ref == 'refs/heads/dev'
+        env:
+          ALB_VOTE: ${{ secrets.ALB_VOTE }}
+          ALB_RESULT: ${{ secrets.ALB_RESULT }}
+          VOTE_PORT: "8080"
+          RESULT_PORT: "8081"
 
-#        run: |
-#          echo "Running test for Vote site"
-#          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT
+        run: |
+          echo "Running test for Vote site"
+          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT
 
-#          echo "Running test for Result site"
-#          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
+          echo "Running test for Result site"
+          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
 
          
       - name: Invoke Lambda Backup
@@ -141,27 +125,10 @@ jobs:
         run: |
           aws lambda invoke \
             --function-name check-health-dev \
-            --payload '{
-              "ALB": "${{ secrets.ALB_RESULT }}",
-              "AGLB2": "${{ secrets.ALB_VOTE }}",
-              "SNS_TOPIC_ARN": "arn:aws:sns:us-east-1:330090896481:RedshiftSNS"
-            }' \
-            --cli-binary-format raw-in-base64-out \
-            response.json
-          cat response.json
-
-
-#      - name: Invoke Lambda check-health
-#        uses: aws-actions/aws-lambda-invoke@v1
-#        with:
-#          function-name: check-health-dev
-#          payload: |
-#            {
-#              "ALB": "${{ secrets.ALB_RESULT }}",
-#              "AGLB2": "${{ secrets.ALB_VOTE }}",
-#              "SNS_TOPIC_ARN": "sns_topic_arn=arn:aws:sns:us-east-1:330090896481:RedshiftSNS"
-#            }
-#          region: us-east-1
+            --region $AWS_REGION \
+            --log-type Tail \
+            lambda_response.json
+          cat lambda_response.json
 
       - name: Email notification
         if: success()

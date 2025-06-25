@@ -36,20 +36,3 @@ variable "backup_bucket" {
   default     = "votingapp-states"
 }
 
-variable "alb_result" {
-  description = "Dirección del ALB para chequeo de salud de result"
-  type        = string
-  default = ""
-}
-
-variable "alb_vote" {
-  description = "Dirección del ALB para chequeo de salud de vote"
-  type        = string
-  default = ""
-}
-
-variable "sns_topic_arn" {
-  description = "ARN del topic SNS donde se publicarán las alertas"
-  type        = string
-  default = ""
-}
