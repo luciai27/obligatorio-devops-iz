@@ -53,8 +53,8 @@ jobs:
 
       - name: Create ECR repository if not existe
         run: |
-          aws ecr describe-repositories --repository-names lambda-healthcheck || \
-          aws ecr create-repository --repository-name lambda-healthcheck
+          aws ecr describe-repositories --repository-names lambda-backup || \
+          aws ecr create-repository --repository-name lambda-backup
          
     
       - name: Build and Push Lambda image
