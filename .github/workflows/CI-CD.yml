@@ -83,11 +83,11 @@ jobs:
             sed -i "s|{{TAG_COMBINADO}}|${{ env.TAG_COMBINADO }}|g" "$file"
           done
 
-      - name: Deploy Kubernetes Manifests
-        if: success()
-        run: |
-          aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
-          kubectl apply -f k8s-specifications/
+#      - name: Deploy Kubernetes Manifests
+#        if: success()
+#        run: |
+#          aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
+#          kubectl apply -f k8s-specifications/
 
       - name: Get Load Balancer Info and Export as Env Vars
         id: elb
