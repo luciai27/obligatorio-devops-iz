@@ -1,6 +1,6 @@
 resource "aws_lambda_function" "url_checker" {
   function_name = "url-checker"
-  filename         = "lambda/lambda.zip"
+  filename         = "../../../lambda/lambda.zip"
 #  s3_bucket        = "mi-bucket-de-lambdas"
 #  s3_key           = "lambda/lambda.zip"
   source_code_hash = filebase64sha256("lambda/lambda.zip")  
