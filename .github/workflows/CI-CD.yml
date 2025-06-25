@@ -46,35 +46,35 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-#      - name: Build and Push Docker Images
-#        run: |
-#          chmod +x ./build-and-push.sh
-#          ./build-and-push.sh
+      - name: Build and Push Docker Images
+        run: |
+          chmod +x ./build-and-push.sh
+          ./build-and-push.sh
 
-#      - name: Create ECR repository if not existe
-#        run: |
-#          aws ecr describe-repositories --repository-names lambda-backup || \
-#          aws ecr create-repository --repository-name lambda-backup
+      - name: Create ECR repository if not existe
+        run: |
+          aws ecr describe-repositories --repository-names lambda-backup || \
+          aws ecr create-repository --repository-name lambda-backup
          
     
-#      - name: Build and Push Lambda image
-#        run: |
-#          docker build -t lambda-backup ./lambda-backup
-#          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
-#          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
-#          docker push $ECR_BASE_URL/lambda-backup:latest
+      - name: Build and Push Lambda image
+        run: |
+          docker build -t lambda-backup ./lambda-backup
+          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
+          docker push $ECR_BASE_URL/lambda-backup:latest
 
-#      - name: Terraform Init + Apply - Network Layer
-#        working-directory: infra/network
-#        run: |
-#          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-network.tfstate"
-#          terraform apply -auto-approve -input=false
+      - name: Terraform Init + Apply - Network Layer
+        working-directory: infra/network
+        run: |
+          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-network.tfstate"
+          terraform apply -auto-approve -input=false
 
-#      - name: Terraform Init + Apply - Env Layer
-#        working-directory: infra/env/${{ steps.set_env.outputs.env }}
-#        run: |
-#          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
-#          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
+      - name: Terraform Init + Apply - Env Layer
+        working-directory: infra/env/${{ steps.set_env.outputs.env }}
+        run: |
+          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
+          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
 
       - name: Replace AWS ID in manifest
         run: |
@@ -83,88 +83,57 @@ jobs:
             sed -i "s|{{TAG_COMBINADO}}|${{ env.TAG_COMBINADO }}|g" "$file"
           done
 
-#      - name: Deploy Kubernetes Manifests
-#        if: success()
-#        run: |
-#          aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
-#          kubectl apply -f k8s-specifications/
-      - name: Configure AWS credentials (assume specific role)
-        uses: aws-actions/configure-aws-credentials@v4
+      - name: Deploy Kubernetes Manifests
+        if: success()
+        run: |
+          aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
+          kubectl apply -f k8s-specifications/
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
         with:
-          role-to-assume: arn:aws:iam::208420141487:role/LabRole
-          role-session-name: github-actions-session
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
-          aws-region: ${{ env.AWS_REGION }}
+          python-version: '3.10'
 
-      - name: Get Load Balancer Info and Export as Env Vars
-        id: elb
+      - name: Install Java Runtime and Taurus dependencies
         run: |
-          # Get only the first two load balancers
-          output=$(aws elbv2 describe-load-balancers \
-            --region "$AWS_REGION" \
-            --query "LoadBalancers[0:2].[LoadBalancerName,DNSName]" \
-            --output json)
+          sudo apt update
+          sudo apt install -y default-jre-headless python3-tk python3-dev libxml2-dev libxslt-dev zlib1g-dev net-tools
 
-          # Parse using jq
-          lb1_name=$(echo "$output" | jq -r '.[0][0]')
-          lb1_dns=$(echo "$output" | jq -r '.[0][1]')
-          lb2_name=$(echo "$output" | jq -r '.[1][0]')
-          lb2_dns=$(echo "$output" | jq -r '.[1][1]')
-
-          echo "LB1_NAME=$lb1_name" >> $GITHUB_ENV
-          echo "LB1_DNS=$lb1_dns" >> $GITHUB_ENV
-          echo "LB2_NAME=$lb2_name" >> $GITHUB_ENV
-          echo "LB2_DNS=$lb2_dns" >> $GITHUB_ENV
-
-      - name: Debug ELB output
+      - name: Install Taurus (bzt)
         run: |
-          output=$(aws elbv2 describe-load-balancers \
-            --query "LoadBalancers[0:2].[LoadBalancerName,DNSName]" \
-            --output json)
-          echo "$output"
+          python -m pip install --upgrade pip
+          python -m pip install bzt
 
-#      - name: Set up Python 3.10
-#        uses: actions/setup-python@v4
-#        with:
-#          python-version: '3.10'
+      - name: Run JMeter Test
+        if: github.ref == 'refs/heads/dev'
+        env:
+          ALB_VOTE: ${{ secrets.ALB_VOTE }}
+          ALB_RESULT: ${{ secrets.ALB_RESULT }}
+          VOTE_PORT: "8080"
+          RESULT_PORT: "8081"
 
-#      - name: Install Java Runtime and Taurus dependencies
-#        run: |
-#          sudo apt update
-#          sudo apt install -y default-jre-headless python3-tk python3-dev libxml2-dev libxslt-dev zlib1g-dev net-tools
+        run: |
+          echo "Running test for Vote site"
+          bzt test.jmx \
+          -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE \
+          -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT \
+          -o reporting='[{"module": "passfail", "criteria": ["succ<50%,stop as failed"]}]'
 
-#      - name: Install Taurus (bzt)
-#        run: |
-#          python -m pip install --upgrade pip
-#          python -m pip install bzt
-
-#      - name: Run JMeter Test
-#        if: github.ref == 'refs/heads/dev'
-#        env:
-#          ALB_VOTE: ${{ secrets.ALB_VOTE }}
-#          ALB_RESULT: ${{ secrets.ALB_RESULT }}
-#          VOTE_PORT: "8080"
-#          RESULT_PORT: "8081"
-
-#        run: |
-#          echo "Running test for Vote site"
-#          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT
-
-#          echo "Running test for Result site"
-#          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
-
+          echo "Running test for Result site"
+          bzt test.jmx \
+          -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT \
+          -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT \
+          -o reporting='[{"module": "passfail", "criteria": ["succ<50%,stop as failed"]}]'
          
-#      - name: Invoke Lambda Backup
-#        if: success()
-#        run: |
-#          aws lambda invoke \
-#            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
-#            --region $AWS_REGION \
-#            --log-type Tail \
-#            lambda_response.json
-#          cat lambda_response.json
+      - name: Invoke Lambda Backup
+        if: success()
+        run: |
+          aws lambda invoke \
+            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
+            --region $AWS_REGION \
+            --log-type Tail \
+            lambda_response.json
+          cat lambda_response.json
 
       - name: Email notification
         if: success()
