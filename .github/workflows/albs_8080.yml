@@ -1,0 +1,51 @@
+name: Buscar ALBs
+
+on:
+  push:
+    branches: [dev, test, main]
+  pull_request:
+    branches: [dev, test, main]
+
+jobs:
+  buscar-albs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1  # o la región que uses
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Buscar ALBs con puerto 8080
+        id: alb_check
+        run: |
+          echo "Buscando ALBs con puerto 8080..."
+
+          dns_list=""
+
+          while read -r lb_arn lb_dns; do
+            ports=$(aws elbv2 describe-listeners \
+              --load-balancer-arn "$lb_arn" \
+              --query "Listeners[*].Port" \
+              --output text)
+
+            for port in $ports; do
+              if [ "$port" = "8080" ]; then
+                echo "✅ ALB con puerto 8080: $lb_dns"
+                dns_list+="$lb_dns "
+              fi
+            done
+          done < <(aws elbv2 describe-load-balancers \
+              --query "LoadBalancers[*].[LoadBalancerArn,DNSName]" \
+              --output text)
+
+          # Guardar como output del step (sin espacios finales)
+          echo "alb_dns_8080=${dns_list%" "}" >> $GITHUB_OUTPUT
+
+      - name: Mostrar resultado
+        run: |
+          echo "ALBs con puerto 8080:"
+          echo "${{ steps.alb_check.outputs.alb_dns_8080 }}"
