@@ -94,6 +94,7 @@ jobs:
         run: |
           # Get only the first two load balancers
           output=$(aws elbv2 describe-load-balancers \
+            --region "${{ secrets.AWS_REGION }}" \
             --query "LoadBalancers[0:2].[LoadBalancerName,DNSName]" \
             --output json)
 
