@@ -108,12 +108,12 @@ jobs:
           echo "LB2_NAME=$lb2_name" >> $GITHUB_ENV
           echo "LB2_DNS=$lb2_dns" >> $GITHUB_ENV
 
-      - name: Use Load Balancer Variables
+      - name: Debug ELB output
         run: |
-          echo "First LB Name: $LB1_NAME"
-          echo "First LB DNS: $LB1_DNS"
-          echo "Second LB Name: $LB2_NAME"
-          echo "Second LB DNS: $LB2_DNS"
+          output=$(aws elbv2 describe-load-balancers \
+            --query "LoadBalancers[0:2].[LoadBalancerName,DNSName]" \
+            --output json)
+          echo "$output"
 
 #      - name: Set up Python 3.10
 #        uses: actions/setup-python@v4
