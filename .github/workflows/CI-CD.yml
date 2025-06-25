@@ -114,10 +114,16 @@ jobs:
 
         run: |
           echo "Running test for Vote site"
-          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT
+          bzt test.jmx \
+          -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE \
+          -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT \
+          -o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'
 
           echo "Running test for Result site"
-          bzt test.jmx -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_RESULT -o modules.jmeter.properties.TARGET_PORT=$RESULT_PORT
+          bzt test.jmx \
+          -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE \
+          -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT \
+          -o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'
 
          
       - name: Invoke Lambda Backup
