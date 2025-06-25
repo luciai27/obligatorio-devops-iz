@@ -51,19 +51,6 @@ jobs:
           chmod +x ./build-and-push.sh
           ./build-and-push.sh
 
-      - name: Create ECR repository if not existe
-        run: |
-          aws ecr describe-repositories --repository-names lambda-backup || \
-          aws ecr create-repository --repository-name lambda-backup
-         
-    
-      - name: Build and Push Lambda image
-        run: |
-          docker build -t lambda-backup ./lambda-backup
-          docker tag lambda-backup:latest $ECR_BASE_URL/lambda-backup:latest
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin $ECR_BASE_URL
-          docker push $ECR_BASE_URL/lambda-backup:latest
-
       - name: Terraform Init + Apply - Network Layer
         working-directory: infra/network
         run: |
@@ -73,17 +60,8 @@ jobs:
       - name: Terraform Init + Apply - Env Layer
         working-directory: infra/env/${{ steps.set_env.outputs.env }}
         run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-
-          terraform init \
-            -backend-config="bucket=${{ secrets.BUCKET_NAME }}" \
-            -backend-config="region=${{ secrets.AWS_REGION }}" \
-            -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
-
-          terraform apply -auto-approve -input=false \
-            -var-file="terraform.tfvars" \
-            -var="backup_bucket=${{ secrets.BUCKET_NAME }}" \
-            -var="aws_account_id=$ACCOUNT_ID"
+          terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
+          terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
 
       - name: Replace AWS ID in manifest
         run: |
@@ -133,17 +111,27 @@ jobs:
           -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE \
           -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT \
           -o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'
-
-         
-      - name: Invoke Lambda Backup
-        if: success()
+   
+      - name: Invocar Lambda con ALBs
+        env:
+          ALB_RESULT: ${{ secrets.ALB_RESULT }}
+          ALB_VOTE: ${{ secrets.ALB_VOTE }}
         run: |
+          echo "Invocando Lambda con URLs: $ALB_RESULT y $ALB_VOTE"
+        
+          PAYLOAD=$(jq -n \
+            --arg url1 "$ALB_RESULT" \
+            --arg url2 "$ALB_VOTE" \
+            '{urls: [$url1, $url2]}')
+
           aws lambda invoke \
-            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
-            --region $AWS_REGION \
-            --log-type Tail \
-            lambda_response.json
-          cat lambda_response.json
+            --function-name url-checker \
+            --payload "$PAYLOAD" \
+            --cli-binary-format raw-in-base64-out \
+            response.json
+      
+      - name: Mostrar respuesta
+        run: cat response.json    
 
       - name: Email notification
         if: success()

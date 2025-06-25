@@ -34,9 +34,5 @@ variable "node_group_name" {
 variable "backup_bucket" {
   description = "The name of the S3 bucket for backups"
   type        = string
-}
-
-variable "aws_account_id" {
-  description = "AWS account ID used for the Lambda image URI"
-  type        = string
+  default     = "votingapp-states"
 }
