@@ -124,7 +124,7 @@ jobs:
         if: success()
         run: |
           aws lambda invoke \
-            --function-name eks_backup \
+            --function-name eks-backup-${{ steps.set_env.outputs.env }} \
             --region $AWS_REGION \
             --log-type Tail \
             lambda_response.json
