@@ -19,28 +19,36 @@ jobs:
           aws-region: us-east-1
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           
-      - name: Obtener DNS de los dos primeros ELBs
+      - name: Obtener ELB que escucha en el puerto 8080
         id: elb_dns
         run: |
-          echo "Obteniendo lista de DNS de ELBs..."
+          echo "Buscando ELB que escuche en el puerto 8080..."
 
-          dns_output=$(aws elb describe-load-balancers \
-            --region us-east-1 \
-            --query "LoadBalancerDescriptions[*].DNSName" \
+          vote=""
+
+          elbs=$(aws elb describe-load-balancers \
+            --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
             --output text)
 
-          echo "Resultado crudo:"
-          echo "$dns_output"
+          while read -r name dns; do
+            echo "Revisando $name ($dns)..."
+            ports=$(aws elb describe-load-balancers \
+              --load-balancer-name "$name" \
+              --query "LoadBalancerDescriptions[0].ListenerDescriptions[*].Listener.LoadBalancerPort" \
+              --output text)
 
-          # Convertir en array (espacios separan DNS)
-          dns_array=($dns_output)
+            for port in $ports; do
+              if [ "$port" = "8080" ]; then
+                echo "✅ $name escucha en el puerto 8080"
+                vote="$dns"
+              else
+                result="$dns" 
+              fi
+            done
+          done <<< "$elbs"
 
-          # Asignar a variables individuales
-          dns1="${dns_array[0]}"
-          dns2="${dns_array[1]}"
-
-          echo "Primer ELB: $dns1"
-          echo "Segundo ELB: $dns2"
+          echo "$vote"  >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
 
           # Exportar como outputs
           echo "elb1=$dns1" >> $GITHUB_OUTPUT
