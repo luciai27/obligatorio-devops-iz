@@ -27,8 +27,8 @@ jobs:
           vote=""
 
           elbs=$(aws elb describe-load-balancers \
-            --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
-            --output text)
+          --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
+          --output text)
 
           while read -r name dns; do
             echo "Revisando $name ($dns)..."
@@ -37,20 +37,22 @@ jobs:
               --query "LoadBalancerDescriptions[0].ListenerDescriptions[*].Listener.LoadBalancerPort" \
               --output text)
 
-            for port in $ports; do
-              if [ "$port" = "8080" ]; then
-                echo "✅ $name escucha en el puerto 8080"
-                vote="$dns"
-              else
-                result="$dns" 
-              fi
-            done
+          for port in $ports; do
+            if [ "$port" = "8080" ]; then
+              echo "✅ $name escucha en el puerto 8080"
+              vote="$dns"
+            fi
+          done
           done <<< "$elbs"
 
-          echo "$vote"  >> $GITHUB_OUTPUT
-          echo "$result" >> $GITHUB_OUTPUT
+          if [ -z "$vote" ]; then
+            echo "❌ No se encontró ningún ELB que escuche en el puerto 8080"
+            exit 1
+          fi
 
-          # Exportar como outputs
-          echo "elb1=$dns1" >> $GITHUB_OUTPUT
-          echo "elb2=$dns2" >> $GITHUB_OUTPUT
+          echo "DNS asignado a vote: $vote"
+
+          # Evitar errores de output por formato
+          echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+
 
