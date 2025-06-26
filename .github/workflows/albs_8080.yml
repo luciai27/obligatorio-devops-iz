@@ -19,16 +19,17 @@ jobs:
           aws-region: us-east-1
           aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           
-      - name: Obtener ELB que escucha en el puerto 8080
-        id: elb_dns
+      - name: Obtener ELBs por puerto (8080 y 8081)
+        id: elb_ports
         run: |
-          echo "Buscando ELB que escuche en el puerto 8080..."
+          echo "Buscando ELBs que escuchen en 8080 y 8081..."
 
-          vote=""
+          vote="" 
+          result=""
 
           elbs=$(aws elb describe-load-balancers \
-          --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
-          --output text)
+            --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
+            --output text)
 
           while read -r name dns; do
             echo "Revisando $name ($dns)..."
@@ -37,26 +38,35 @@ jobs:
               --query "LoadBalancerDescriptions[0].ListenerDescriptions[*].Listener.LoadBalancerPort" \
               --output text)
 
-          for port in $ports; do
-            if [ "$port" = "8080" ]; then
-              echo "✅ $name escucha en el puerto 8080"
-              vote="$dns"
-            fi
-          done
+            for port in $ports; do
+              if [ "$port" = "8080" ]; then
+                echo "✅ $name escucha en el puerto 8080"
+                vote="$dns"
+              elif [ "$port" = "8081" ]; then
+                echo "✅ $name escucha en el puerto 8081"
+                result="$dns"
+              fi
+            done
           done <<< "$elbs"
 
           if [ -z "$vote" ]; then
             echo "❌ No se encontró ningún ELB que escuche en el puerto 8080"
-            exit 1
           fi
 
-          echo "DNS asignado a vote: $vote"
+          if [ -z "$result" ]; then
+            echo "❌ No se encontró ningún ELB que escuche en el puerto 8081"
+          fi
 
-          # Evitar errores de output por formato
+          echo "DNS vote: $vote"
+          echo "DNS result: $result"
+
+          # Limpiar posibles saltos de línea y exportar como outputs válidos
           echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
-      
-      - name: Usar ELB vote
+          echo "result=$(echo "$result" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+         
+      - name: Usar DNS encontrados
         run: |
-          echo "ELB que escucha en 8080: ${{ steps.elb_dns.outputs.vote }}"
+          echo "Vote: ${{ steps.elb_ports.outputs.vote }}"
+          echo "Result: ${{ steps.elb_ports.outputs.result }}"    
 
 
