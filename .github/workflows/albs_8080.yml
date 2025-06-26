@@ -12,24 +12,28 @@ jobs:
 
     steps:
       - name: Obtener DNS de los dos primeros ELBs
+        id: elb_dns
         run: |
-          readarray -t dns_array < <(aws elb describe-load-balancers \
+          echo "Obteniendo lista de DNS de ELBs..."
+
+          dns_output=$(aws elb describe-load-balancers \
             --query "LoadBalancerDescriptions[*].DNSName" \
             --output text)
 
+          echo "Resultado crudo:"
+          echo "$dns_output"
+
+          # Convertir en array (espacios separan DNS)
+          dns_array=($dns_output)
+
+          # Asignar a variables individuales
           dns1="${dns_array[0]}"
           dns2="${dns_array[1]}"
 
           echo "Primer ELB: $dns1"
           echo "Segundo ELB: $dns2"
 
-          # Exportar como outputs si querés usarlos después
+          # Exportar como outputs
           echo "elb1=$dns1" >> $GITHUB_OUTPUT
           echo "elb2=$dns2" >> $GITHUB_OUTPUT
-        id: elb_dns
-
-      - name: Usar DNS obtenidos
-        run: |
-          echo "Usando ELB1: ${{ steps.elb_dns.outputs.elb1 }}"
-          echo "Usando ELB2: ${{ steps.elb_dns.outputs.elb2 }}"
 
