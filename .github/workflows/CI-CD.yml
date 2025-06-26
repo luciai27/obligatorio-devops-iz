@@ -147,8 +147,8 @@ jobs:
       - name: Run JMeter Test
         if: github.ref == 'refs/heads/dev'
         env:
-          ALB_VOTE: $Vote
-          ALB_RESULT: $Result
+          ALB_VOTE: ${{ steps.elb_ports.outputs.vote }}
+          ALB_RESULT: ${{ steps.elb_ports.outputs.result }}
           VOTE_PORT: "8080"
           RESULT_PORT: "8081"
 
