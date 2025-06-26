@@ -54,5 +54,9 @@ jobs:
 
           # Evitar errores de output por formato
           echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+      
+      - name: Usar ELB vote
+        run: |
+          echo "ELB que escucha en 8080: ${{ steps.elb_dns.outputs.vote }}"
 
 
