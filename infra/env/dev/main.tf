@@ -57,25 +57,15 @@ resource "aws_route_table_association" "public" {
 resource "aws_eks_cluster" "eks" {
   name     = var.cluster_name
   role_arn = data.aws_iam_role.lab_role.arn
-
   enabled_cluster_log_types = [ "api", "audit", "authenticator" ]
 
   vpc_config {
     subnet_ids = aws_subnet.public[*].id
   }
 
-  logging {
-    cluster_logging {
-      enabled = true
-      types   = ["api", "audit", "authenticator"]
-    }
-  }
-
   tags = {
     Name = var.cluster_name
   }
-
-  depends_on = [aws_cloudwatch_log_group.eks_cluster_log_group]
 }
 
 resource "aws_eks_node_group" "node_group" {
