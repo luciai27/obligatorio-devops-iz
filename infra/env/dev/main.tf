@@ -141,7 +141,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_utilization_alarm" {
   alarm_name          = "cpu-utilization-eks-cluster"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
-  metric_name         = "CPUUtilization"
+  metric_name         = "CpuUtilized"
   namespace           = "ContainerInsights"
   period              = "60"
   statistic           = "Average"
