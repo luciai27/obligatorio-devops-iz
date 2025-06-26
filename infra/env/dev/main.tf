@@ -57,7 +57,7 @@ resource "aws_route_table_association" "public" {
 resource "aws_eks_cluster" "eks" {
   name     = var.cluster_name
   role_arn = data.aws_iam_role.lab_role.arn
-  enabled_cluster_log_types = [ "api", "audit", "authenticator" ]
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
   vpc_config {
     subnet_ids = aws_subnet.public[*].id
