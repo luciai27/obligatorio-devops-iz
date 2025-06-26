@@ -17,6 +17,7 @@ jobs:
           echo "Obteniendo lista de DNS de ELBs..."
 
           dns_output=$(aws elb describe-load-balancers \
+            --region us-east-1 \
             --query "LoadBalancerDescriptions[*].DNSName" \
             --output text)
 
