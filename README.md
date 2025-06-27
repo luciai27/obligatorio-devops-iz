@@ -18,8 +18,6 @@ Estas variables deben estar configuradas como *Secrets* en GitHub:
 - `AWS_SECRET_ACCESS_KEY`
 - `AWS_SESSION_TOKEN`
 - `BUCKET_NAME` (nombre único del bucket S3 en donde se guardarán los tfstates.)
-- `ALB_RESULT` (enlance del ALB creado por AWS a través de K8s para ver los resultados.)
-- `ALB_VOTE` (enlance del ALB creado por AWS a través de K8s para realizar votos.)
 - `EMAIL_USER`
 - `EMAIL_PASS`
 - `REPO_OWNER_MAIL`
@@ -29,9 +27,7 @@ Los primeros cuatro secretos corresponden a configuraciones de AWS, por lo que s
 
 El Bucket Name es necesario ya que, al ser dos personas las que estamos trabajando en el proyecto y dado que los buckets de S3 deben tener nombres únicos, no es posible utilizar un mismo nombre en cuentas diferentes. Esto fue algo que se tuvo que parametrizar (y, por lo tanto, el mismo debe ser creado manualmente **antes** de correr el pipeline).
 
-Los enlaces a los ALBs (ALB Result y ALB Vote) son necesarios como secretos ya que la creación de los ALBs es automatizada por AWS gracias a la forma en que configuramos los K8s. Dado que su creación no está explícita en ninguna parte de nuestro pipeline, resultó más simple colocarlos como secretos luego de su creación. Este secreto debe ser seteado manualmente luego de finalizada la primera corrida del pipeline para cada ambiente.
-
-Los secretos de Email User, Email Pass y Repo Owner Mail son necesarios para el envío de correo cuando se crea un Pull Request.
+Los secretos de Email User, Email Pass y Repo Owner Mail son necesarios para el envío de correo cuando se crea un Pull Request y cuando finaliza lambda.
 
 El Sonar Token es necesario para la realización del análisis de código de SonarQube.
 
@@ -155,7 +151,10 @@ Inicio
                                                                                                 ├── tabla de restultados
                                                                                                 ├── corre test en ALB de Results
                                                                                                 └── tabla de restultados
-
+                                                                                                                       └──λ Invocar Lambda con ALBs
+                                                                                                                                                  └── 📧 Email notification de lambda result
+                                                                                                                                                                                          └── 📧 Email notification Resultado del Pipeline
+   
 
 ```
 
