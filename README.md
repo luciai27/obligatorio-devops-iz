@@ -225,6 +225,7 @@ Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
  ## Análisis estático 
    - Se ejecuta SonarQube en cada push para evaluar calidad de código
    - Se usa el GitHub Action oficial de SonarCloud o configuración personalizada con `sonar-scanner`
+   - SonarQube permite mejorar la calidad del código automáticamente al analizarlo en busca de errores, vulnerabilidades, código duplicado y malas prácticas. Facilita el mantenimiento, reduce el riesgo de fallos en producción y promueve buenas prácticas de desarrollo mediante métricas claras e integraciones con CI/CD. Además, ayuda a asegurar que el código nuevo  no degrade la calidad existente.
 
    #### Prerrequisitos SonarQube:
    - Tener un proyecto creado en [SonarCloud](https://sonarcloud.io/) o en tu instancia propia de SonarQube
@@ -253,6 +254,7 @@ Infrome de sonarQube
 ## Lambda url-checker 
 
 Verificación de disponibilidad de servicios
+
 Esta función Lambda fue desarrollada con el objetivo de monitorear la disponibilidad de los servicios frontend de la Voting App desplegados en AWS (por ejemplo, las aplicaciones vote y result publicadas detrás de ALBs).
 
  ```
