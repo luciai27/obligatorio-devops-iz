@@ -216,8 +216,8 @@ jobs:
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
           subject: ${{ steps.lambda_result.outputs.subject }}
-          to: gzunino@urudata.com 
-          #          to: ${{ secrets.REPO_OWNER_MAIL }}
+          #to: gzunino@urudata.com 
+          to: ${{ secrets.REPO_OWNER_MAIL }}
           from: "CI/CD Bot <${{ secrets.EMAIL_USER }}>"
           body: |
             Resultado del healthcheck en ambiente **${{ steps.set_env.outputs.env }}**:
