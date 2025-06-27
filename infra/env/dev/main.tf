@@ -105,7 +105,7 @@ data "aws_instances" "eks_nodes" {
 }
 
 resource "aws_cloudwatch_dashboard" "vote" {
-  dashboard_name = "dashboard-vote"
+  dashboard_name = "dashboard-vote-${var.environment}"
 
   dashboard_body = jsonencode({
     widgets = flatten([
@@ -137,55 +137,55 @@ resource "aws_cloudwatch_dashboard" "vote" {
   })
 }
 
-resource "aws_cloudwatch_metric_alarm" "cpu_utilization_alarm" {
-  alarm_name          = "cpu-utilization-eks-cluster"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "CpuUtilized"
-  namespace           = "ContainerInsights"
-  period              = "60"
-  statistic           = "Average"
-  threshold           = "80"
-  treat_missing_data = "notBreaching"
+#resource "aws_cloudwatch_metric_alarm" "cpu_utilization_alarm" {
+#  alarm_name          = "cpu-utilization-eks-cluster"
+#  comparison_operator = "GreaterThanOrEqualToThreshold"
+#  evaluation_periods  = "2"
+#  metric_name         = "CpuUtilized"
+#  namespace           = "ContainerInsights"
+#  period              = "60"
+#  statistic           = "Average"
+#  threshold           = "80"
+#  treat_missing_data = "notBreaching"
  
-  dimensions = {
-    ClusterName = var.cluster_name
-  }
+#  dimensions = {
+#    ClusterName = var.cluster_name
+#  }
  
-  alarm_description  = "Alarma cuando la utilización de CPU excede el 80%"
-  alarm_actions      = [aws_sns_topic_subscription.email_subscription.arn]
-}
+#  alarm_description  = "Alarma cuando la utilización de CPU excede el 80%"
+#  alarm_actions      = [aws_sns_topic_subscription.email_subscription.arn]
+#}
  
-resource "aws_cloudwatch_metric_alarm" "memory_utilized_alarm" {
-  alarm_name          = "memory-utilized-eks-cluster"
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "2"
-  metric_name         = "MemoryUtilized"
-  namespace           = "ContainerInsights"
-  period              = "60"
-  statistic           = "Average"
-  threshold           = "80"
-  treat_missing_data = "notBreaching"
+#resource "aws_cloudwatch_metric_alarm" "memory_utilized_alarm" {
+#  alarm_name          = "memory-utilized-eks-cluster"
+#  comparison_operator = "GreaterThanOrEqualToThreshold"
+#  evaluation_periods  = "2"
+#  metric_name         = "MemoryUtilized"
+#  namespace           = "ContainerInsights"
+#  period              = "60"
+#  statistic           = "Average"
+#  threshold           = "80"
+#  treat_missing_data = "notBreaching"
  
-  dimensions = {
-    ClusterName = var.cluster_name
-  }
+#  dimensions = {
+#    ClusterName = var.cluster_name
+#  }
  
-  alarm_description  = "Alarma cuando la utilización de memoria excede el 80%"
-  alarm_actions      = [aws_sns_topic_subscription.email_subscription.arn]
-}
+#  alarm_description  = "Alarma cuando la utilización de memoria excede el 80%"
+#  alarm_actions      = [aws_sns_topic_subscription.email_subscription.arn]
+#}
 
-resource "aws_sns_topic" "alarm_topic" {
-  name = "eks-alarms"
-}
+#resource "aws_sns_topic" "alarm_topic" {
+#  name = "eks-alarms"
+#}
  
-resource "aws_sns_topic_subscription" "email_subscription" {
-  topic_arn = aws_sns_topic.alarm_topic.arn
-  protocol  = "email"
-  endpoint  = "luciaibarburu@hotmail.com"
-}
+#resource "aws_sns_topic_subscription" "email_subscription" {
+#  topic_arn = aws_sns_topic.alarm_topic.arn
+#  protocol  = "email"
+#  endpoint  = "luciaibarburu@hotmail.com"
+#}
 
-resource "aws_cloudwatch_log_group" "eks_cluster_log_group" {
-  name              = "/aws/eks/${var.cluster_name}/cluster"
-  retention_in_days = 7
-}
+#resource "aws_cloudwatch_log_group" "eks_cluster_log_group" {
+#  name              = "/aws/eks/${var.cluster_name}/cluster"
+#  retention_in_days = 7
+#}
