@@ -199,8 +199,8 @@ jobs:
    
       - name: Invocar Lambda con ALBs
         env:
-          ALB_RESULT: "http://${{ steps.set_env.outputs.result }}:8081"
-          ALB_VOTE: "http://${{ steps.set_env.outputs.vote }}:8080"
+          ALB_RESULT: "http://${{ steps.elb_ports.outputs.result }}:8081"
+          ALB_VOTE: "http://${{ steps.elb_ports.outputs.vote }}:8080"
         run: |
           echo "Invocando Lambda con URLs: $ALB_RESULT y $ALB_VOTE"
         
