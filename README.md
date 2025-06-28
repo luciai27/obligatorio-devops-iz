@@ -248,7 +248,12 @@ Infrome de sonarQube
 ![Informe_SonarQube.docx](/IMG/Informe_SonarQube.docx)
 
 ## Testing
-   - Se ejecutan pruebas de carga con JMeter sobre el entorno correspondiente
+Para la realización del testing del obligatorio se optó por pruebas de carga utilizando JMeter. Se utilizó BlazeMeter con Taurus, lo que permitió incluir un failure criteria para que el testing no continuara si fallaba una sola prueba.
+La prueba de carga que se realizó se encuentra en el archivo test.jmx y consiste en lo siguiente:
+    - <intProp name="ThreadGroup.num_threads">10</intProp>: el número de threads (usuarios) es 10.
+    - <intProp name="ThreadGroup.ramp_time">5</intProp>: JMeter demora 5 segundos para que se conecten los 10 usuarios.
+    - <longProp name="ThreadGroup.duration">15</longProp>: la duración total del test es de 15 segundos.
+    - Cada usuario repetirá la solicitud HTTP tantas veces como sea posible durante esos 15 segundos.
 
 ## Lambda url-checker 
 
@@ -293,7 +298,7 @@ Envía un correo a un destinatario configurable con detalles del error
    - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
 
 
-
+## Cloudwatch
 
 
 ## 🚧 CodeQL y  super-linter como *Quality Gate* en el Proceso de Integración Continua
@@ -373,8 +378,26 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 
 ### Decisiones de Diseño
 
-- Al utilizar el mismo repositorio en el codigo de la aplicación, como en la infraestructura, si en los pipeline (super-linter.yml o codeql-analysis.yml) el resultado es con error, como es un error de código igual se continúa con el despliegue de la infraestructura, esto sólo se aplica para el laboratorio. En el caso del laboratorio codeql-analysis, termina de forma correcta, y super-linter que hace una revision de html,css y yaml no, igual este último sólo se ejcuta cuando el branch es main.
+- Como se mencionó anteriormente en la documentación, se incluyó tanto la infraestructura, como el código de la aplicación en el mismo repositorio ya que, en nuestro parecer, es un proyecto pequeño que se benefició de solamente tener un lugar de trabajo. Dado que fue nuestro primer intento de despliegue automatizado de infraestructura utilizando IaC, nos resultó útil tener ambas áreas juntas y en contante testeo.
 
-- En aws se utiliza una sola VPC, para los 3 cluster y 2 subnets por ambiente. Para cada ambiente se tiene un cluster, algunas de las razones fueron menor "Blast Radius", si hay un error humano, una configuración errónea o un incidente de seguridad en un ambiente, el impacto se limita a ese clúster específico. Es mucho más difícil afectar accidentalmente producción desde desarrollo. Ciclo de vida y pruebas independientes, puedes probar las actualizaciones de versión de Kubernetes en un clúster de desarrollo/QA antes de aplicarlas a producción. En un solo clúster, actualizar la versión del Kubernetes afectaría a todos los ambientes simultáneamente. Configuraciones de infraestructura específicas, cada clúster puede tener configuraciones de red, almacenamiento, balanceadores de carga o tipos de instancias subyacentes optimizadas para las necesidades específicas de ese ambiente (ej: menor costo en dev, alta disponibilidad y performance en prod).
+- Se utilizó un solo workflow para todos los ambientes. Se parametrizó el ambiente del cual provino el push, lo que brinda mayor flexibilidad si se desean incluir más branches en el repositorio, ya que no será necesario crear workflows dedicados para las nuevas ramas, simplemente se deben contemplan sus nombres en el condicional inicial del workflow único.
 
-- 
+- En AWS se utilizó una sola VPC con 6 subnets públicas (2 por cada ambiente: dev, test y prod) y 3 clusters EKS (también uno por ambiente). Algunas de las razones que nos llevaron a tomar estas deciciones fueron: 
+    - Menor "Blast Radius": si hay un error humano, una configuración errónea o un incidente de seguridad en un ambiente, el impacto se limita a ese clúster específico. Es mucho más difícil afectar accidentalmente el ambiente de producción desde desarrollo. 
+    - Ciclo de vida y pruebas independientes: se pueden probar las actualizaciones de versión de Kubernetes en un clúster de desarrollo/QA antes de aplicarlas a producción. En un solo clúster, actualizar la versión del Kubernetes afectaría a todos los ambientes simultáneamente. 
+    - Configuraciones de infraestructura específicas: cada clúster puede tener configuraciones de red, almacenamiento, balanceadores de carga o tipos de instancias subyacentes optimizadas para las necesidades específicas de ese ambiente (ej: menor costo en dev, alta disponibilidad y performance en prod). Si bien en el obligatorio se utilizaron las mismas propiedades en todos los ambientes, se tuvo este punto en cuenta.
+    - Especificaciones de EKS: Se utilizaron 2 subnets públicas ya que fue el menor número de subnets permitidas por EKS para la creación de clusters.
+
+- Para la IaC no se utilizaron módulos pero se utilizó el mismo contenido del main.tf, solamente con variables diferenciadas por ambiente, lo que facilitó la realización de cambios y nos otorgó flexibilidad.
+
+- No se utilizó la estrategia de feature branch para el desarrollo de la infraestructura dado que se creó en el mismo repositorio que la aplicación y no nos restuló práctico utilizar esta estrategia durante el transcurso del proyeto.
+
+- El testing de carga se aplicó como quality gate, es decir, si el mismo falla, se cancela el resto del pipeline. El failure criteria se estableció en menos de "100% success", o sea, mientras nada falle, seguirá el pipeline.
+
+- Si los pipelines de "super-linter.yml" o "codeql-analysis.yml" no llegan a completarse, esto no contituye un error, ya que se continúa con el despliegue de la infraestructura. En el caso de "codeql-analysis", éste termina de forma correcta, mientras que para "super-linter", es posible que no se complete dado que es una revision de HTML, CSS y otros archivos de código, que no nos corresponde arreglar en el presente obligatorio.
+
+### Lecciones aprendidas
+
+- Al principio luchamos mucho con la lógica y la creación de la Infraestructura como Código, ya que estábamos tratando de crear subnets privadas y públicas conectadas a través de NAT gateways para mantener la seguridad de los clusters. Nos dimos cuenta que a veces menos es más, por lo menos en el caso del obligatorio. Nos gustaría poder modificarlo luego con una infraestructura similar a la mencionada.
+
+- A pesar de que menos es más, en el caso de la búsqueda de los ALBs en el pipeline de CI/CD, nos dimos cuenta también que nada es imposible. Cuando comenzamos a desarrollar el pipeline, los ALBs creados automáticamente por los manifiestos kubernetes se ingresaban manualmente como secretos del repositorio, lo que significaba que el mismo se iba a romper cuando llegara a la parte del testing por primera vez. Una vez roto, se ingresarían los ALBs creados en el step anterior (despliegue de K8s) y luego se correría nuevamente el pipeline. Insatisfechos con esto, buscamos una solución utilizando el AWS API (query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]"). Esto no fue suficiente, ya que, si bien traía los ALBs creados, no los podía filtrar por fecha de creación por ser ALBs clásicos (la API no soporta esta condición para este tipo de Load Balancer), cosa que necesitábamos para poder diferenciar los ALBs de los diferentes ambientes. Luego de mucho trabajo, llegamos a la línea "readarray -t dns_array_8080 < <( aws elb describe-load-balancers --output json | jq -r '.LoadBalancerDescriptions[] | select(.ListenerDescriptions[].Listener.LoadBalancerPort == 8080) | "\(.CreatedTime) \(.DNSName)"' | sort | awk '{print $2}')", que fue indispensable para la automatización del resto del pipeline. Básicamente, creamos un array con todos los ALBs (en este caso filtrados por puerto 8080, pero se realizó lo mismo para el puerto 8081), los cuales están ordenados por fecha de creación. Luego se crearon condicionales para determinar qué ALBs se tomarían basado en la posición en la que se encontraba (dado que nuestro repositorio sigue el orden de PR dev -> test -> prod, sabíamos que el más antiguo sería el de dev y el más nuevo, de prod). La posición 0 será de los ALBs de dev, la 1 de test y la 2 de prod.
