@@ -96,16 +96,14 @@ Componentes:
    - Se sube la imagen a ECR con tag de entorno
    - Se actualiza el archivo `docker-compose.generated.yml` con el tag generado
    - El archivo `docker-compose.generated.yml` se sube a bucket S3
-   - Se crea repositorio para Lambda
-   - Se genera una imagen para backup utilizando Lambda
-   - Se sube la imagen a ECR
    - Se crea la infraestructura común a todos los ambientes (network)
    - Se crea la infrastructura correspondiente al ambiente del push
-   - Se despliegan manifiestos K8s
+   - Se remplazan variables y se despliegan manifiestos K8s
+   - Se prepara ambiente para testing
+   - Se buscan los URL de los ALBs y setean como variables
    - Se realiza testing de carga en ALBs creados por K8s (Vote y Result)
-   - Se invoca función Lambda
-
-   - Se envía notificación por correo electrónico
+   - Se invoca función Lambda para verificación de estado de URLs
+   - Se procesan resultados y se envía notificación por correo electrónico
 
 🛠️ Diagrama de Flujo - CI/CD Voting App
 ```text
@@ -131,30 +129,31 @@ Inicio
                                                 └── guardar archivo actualizado
                                                     └── ✅ Archivo listo para despliegue
                                                         └── imagen disponible en ECR
-                                                            └── 🟨 Construcción de imagen Lambda
-                                                                └── docker build -t lambda-backup ./lambda-backup
-                                                                    └── 🟧 Subir imagen a ECR
-                                                                        ├── docker tag → apuntar al repo ECR
-                                                                        └── docker push → subir imagen
-                                                                            └── 🟦 Creación de infra con Terraform
-                                                                                ├── terraform init y apply: capa network
-                                                                                ├── tfstate network guardado en bucket
-                                                                                ├── terraform init y apply: capa ambiente actual
-                                                                                └── tfstate ambiente guardado en bucket
-                                                                                    └── 🟩 Despliegue de Kubernetes
-                                                                                        ├── reemplazo de variables en manifiestos
-                                                                                        ├── aws eks update-kubeconfig
-                                                                                        └── kubectl apply -f k8s-specifications
-                                                                                            └── 🔍 Realizar testing de carga
-                                                                                                ├── seteo de ambiente
-                                                                                                ├── corre test en ALB de Vote
-                                                                                                ├── tabla de restultados
-                                                                                                ├── corre test en ALB de Results
-                                                                                                └── tabla de restultados
-                                                                                                                       └──λ Invocar Lambda con ALBs
-                                                                                                                                                  └── 📧 Email notification de lambda result
-                                                                                                                                                                                          └── 📧 Email notification Resultado del Pipeline
-   
+                                                            └── 🟦 Creación de infra con Terraform
+                                                                ├── terraform init y apply: capa network
+                                                                ├── tfstate network guardado en bucket
+                                                                ├── terraform init y apply: capa ambiente actual
+                                                                └── tfstate ambiente guardado en bucket
+                                                                    └── 🟩 Despliegue de Kubernetes
+                                                                        ├── reemplazo de variables en manifiestos
+                                                                        ├── aws eks update-kubeconfig
+                                                                        └── kubectl apply -f k8s-specifications
+                                                                            └── 🔍 Seteo de ambiente y config para Testing
+                                                                                └── Obtención de URL de ALBs
+                                                                                    ├── busca por puerto 8080
+                                                                                    ├── setea dependiendo del ambiente
+                                                                                    ├── busca por puerto 8081
+                                                                                    └── setea dependiendo del ambiente
+                                                                                         └──🔍 Corre testing               
+                                                                                            ├── carga para ALB vote
+                                                                                            ├── carga para ALB result
+                                                                                            └── QG: pasa si success = %100
+                                                                                                └──λ Invocar Lambda con ALBs
+                                                                                                    ├── check URL vote OK
+                                                                                                    └── check URL result OK
+                                                                                                        └── 📧 Email notification de lambda result
+                                                                                                            └── 📧 Email notification Resultado del Pipeline
+
 
 ```
 
@@ -333,9 +332,9 @@ En este repositorio, CodeQL se utiliza como un **_quality gate_ automático** du
 ---
 Las configuraciones de las **branch protection rules** son las siguientes:
 
-![QG_1.png](QG_1.png)
+![QG_1.png](/IMG/QG_1.png)
 
-![QG_2.png](QG_2.png)
+![QG_2.png](/IMG/QG_2.png)
 
 ### 🧪 ¿Cómo funciona?
 
@@ -369,6 +368,7 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 
 ### Tercera etapa:
 
+![IMG/Trello 3.png](IMG/Trello%203.png)
 
 
 ### Decisiones de Diseño
