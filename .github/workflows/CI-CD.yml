@@ -166,6 +166,7 @@ jobs:
           -o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'
    
       - name: Invocar Lambda con ALBs
+        if: github.ref == 'refs/heads/dev'  
         env:
           ALB_RESULT: "http://${{ steps.elb_ports.outputs.result }}:8081"
           ALB_VOTE: "http://${{ steps.elb_ports.outputs.vote }}:8080"
@@ -184,6 +185,7 @@ jobs:
             response.json
         
       - name: Procesar resultado de Lambda
+        if: github.ref == 'refs/heads/dev'  
         id: lambda_result
         run: |
           echo "Procesando resultado de Lambda..."
