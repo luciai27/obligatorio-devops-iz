@@ -9,6 +9,7 @@ on:
 env:
   TF_VERSION: 1.5.7
   AWS_REGION: us-east-1
+  BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
 
 jobs:
   build-deploy:
@@ -26,7 +27,8 @@ jobs:
           else
             echo "env=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
           fi
-
+    
+  
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -60,7 +62,7 @@ jobs:
         run: |
           terraform init -backend-config="bucket=${{ secrets.BUCKET_NAME }}" -backend-config="region=${{ secrets.AWS_REGION }}" -backend-config="key=voting-app-${{ steps.set_env.outputs.env }}.tfstate"
           terraform apply -auto-approve -input=false -var-file="terraform.tfvars"
-          
+
       - name: Replace AWS ID in manifest
         run: |
           for file in k8s-specifications/*-deployment.yaml; do
@@ -73,6 +75,158 @@ jobs:
         run: |
           aws eks update-kubeconfig --region $AWS_REGION --name voting-app-${{ steps.set_env.outputs.env }}-cluster
           kubectl apply -f k8s-specifications/
+
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Java Runtime and Taurus dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y default-jre-headless python3-tk python3-dev libxml2-dev libxslt-dev zlib1g-dev net-tools
+
+      - name: Install Taurus (bzt)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install bzt
+
+
+      - name: Obtener ELBs por puerto (8080 y 8081)
+        id: elb_ports
+        run: |
+          echo "Buscando ELBs que escuchen en 8080 y 8081..."
+
+          vote="" 
+          result=""
+
+          elbs=$(aws elb describe-load-balancers \
+            --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
+            --output text)
+
+          while read -r name dns; do
+            echo "Revisando $name ($dns)..."
+            ports=$(aws elb describe-load-balancers \
+              --load-balancer-name "$name" \
+              --query "LoadBalancerDescriptions[0].ListenerDescriptions[*].Listener.LoadBalancerPort" \
+              --output text)
+
+            for port in $ports; do
+              if [ "$port" = "8080" ]; then
+                echo "✅ $name escucha en el puerto 8080"
+                vote="$dns"
+              elif [ "$port" = "8081" ]; then
+                echo "✅ $name escucha en el puerto 8081"
+                result="$dns"
+              fi
+            done
+          done <<< "$elbs"
+
+          if [ -z "$vote" ]; then
+            echo "❌ No se encontró ningún ELB que escuche en el puerto 8080"
+          fi
+
+          if [ -z "$result" ]; then
+            echo "❌ No se encontró ningún ELB que escuche en el puerto 8081"
+          fi
+
+          echo "DNS vote: $vote"
+          echo "DNS result: $result"
+
+          # Limpiar posibles saltos de línea y exportar como outputs válidos
+          echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+          echo "result=$(echo "$result" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+
+         
+      - name: Usar DNS encontrados
+        run: |
+          echo "Vote: ${{ steps.elb_ports.outputs.vote }}"
+          echo "Result: ${{ steps.elb_ports.outputs.result }}"
+
+
+      - name: Run JMeter Test
+        if: github.ref == 'refs/heads/dev'
+        env:
+          ALB_VOTE: ${{ steps.elb_ports.outputs.vote }}
+          ALB_RESULT: ${{ steps.elb_ports.outputs.result }}
+          VOTE_PORT: "8080"
+          RESULT_PORT: "8081"
+
+        run: |
+          echo "Running test for Vote site"
+          bzt test.jmx \
+          -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE \
+          -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT \
+          -o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'
+
+          echo "Running test for Result site"
+          bzt test.jmx \
+          -o modules.jmeter.properties.TARGET_DOMAIN=$ALB_VOTE \
+          -o modules.jmeter.properties.TARGET_PORT=$VOTE_PORT \
+          -o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'
+   
+      - name: Invocar Lambda con ALBs
+        env:
+          ALB_RESULT: "http://${{ steps.elb_ports.outputs.result }}:8081"
+          ALB_VOTE: "http://${{ steps.elb_ports.outputs.vote }}:8080"
+        run: |
+          echo "Invocando Lambda con URLs: $ALB_RESULT y $ALB_VOTE"
+        
+          PAYLOAD=$(jq -n \
+            --arg url1 "$ALB_RESULT" \
+            --arg url2 "$ALB_VOTE" \
+            '{urls: [$url1, $url2]}')
+
+          aws lambda invoke \
+            --function-name url-checker \
+            --payload "$PAYLOAD" \
+            --cli-binary-format raw-in-base64-out \
+            response.json
+        
+      - name: Procesar resultado de Lambda
+        id: lambda_result
+        run: |
+          echo "Procesando resultado de Lambda..."
+          cat response.json
+
+          has_error=$(jq 'to_entries[] | select(.value != "OK")' response.json)
+
+          if [ -z "$has_error" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            subject="✅ Healthcheck OK - ${{ steps.set_env.outputs.env }}"
+          else
+            echo "status=fail" >> $GITHUB_OUTPUT
+            subject="❌ Healthcheck FAIL - ${{ steps.set_env.outputs.env }}"
+            exit 1
+          fi
+
+          # Generar cuerpo del mail
+          body=$(jq -r 'to_entries[] | "\(.key): \(.value)"' response.json | sed 's/^/- /')
+
+          echo "subject=$subject" >> $GITHUB_OUTPUT
+          echo "body<<EOF" >> $GITHUB_OUTPUT
+          echo "$body" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Email notification de lambda result
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USER }}
+          password: ${{ secrets.EMAIL_PASS }}
+          subject: ${{ steps.lambda_result.outputs.subject }}
+          #to: gzunino@urudata.com 
+          to: ${{ secrets.REPO_OWNER_MAIL }}
+          from: "CI/CD Bot <${{ secrets.EMAIL_USER }}>"
+          body: |
+            Resultado del healthcheck en ambiente **${{ steps.set_env.outputs.env }}**:
+
+            ${{ steps.lambda_result.outputs.body }}
+
+            Repositorio: ${{ github.repository }}
+            Rama: ${{ github.ref_name }}
+            Ejecutado por: ${{ github.actor }}     
 
       - name: Email notification
         if: success()
