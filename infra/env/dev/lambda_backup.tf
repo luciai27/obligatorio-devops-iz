@@ -1,5 +1,5 @@
 resource "aws_lambda_function" "url_checker" {
-  function_name = "url-checker"
+  function_name = "url-checker-${var.environment}"
   filename         = "../../../lambda/lambda.zip"
 #  s3_bucket        = "mi-bucket-de-lambdas"
 #  s3_key           = "lambda/lambda.zip"
