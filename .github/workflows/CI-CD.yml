@@ -92,63 +92,64 @@ jobs:
           python -m pip install bzt
 
 
-      - name: Obtener ELBs por puerto (8080 y 8081)
-        id: elb_ports
-        run: |
-          echo "Buscando ELBs que escuchen en 8080 y 8081..."
+#      - name: Obtener ELBs por puerto (8080 y 8081)
+#        if: github.ref == 'refs/heads/dev'
+#        id: elb_ports
+#        run: |
+#          echo "Buscando ELBs que escuchen en 8080 y 8081..."
 
-          vote="" 
-          result=""
+#          vote="" 
+#          result=""
 
-          elbs=$(aws elb describe-load-balancers \
-            --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
-            --output text)
+#          elbs=$(aws elb describe-load-balancers \
+#            --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
+#            --output text)
 
-          while read -r name dns; do
-            echo "Revisando $name ($dns)..."
-            ports=$(aws elb describe-load-balancers \
-              --load-balancer-name "$name" \
-              --query "LoadBalancerDescriptions[0].ListenerDescriptions[*].Listener.LoadBalancerPort" \
-              --output text)
+ #         while read -r name dns; do
+#            echo "Revisando $name ($dns)..."
+#            ports=$(aws elb describe-load-balancers \
+#              --load-balancer-name "$name" \
+#              --query "LoadBalancerDescriptions[0].ListenerDescriptions[*].Listener.LoadBalancerPort" \
+#              --output text)
 
-            for port in $ports; do
-              if [ "$port" = "8080" ]; then
-                echo "✅ $name escucha en el puerto 8080"
-                vote="$dns"
-              elif [ "$port" = "8081" ]; then
-                echo "✅ $name escucha en el puerto 8081"
-                result="$dns"
-              fi
-            done
-          done <<< "$elbs"
+#            for port in $ports; do
+#              if [ "$port" = "8080" ]; then
+#                echo "✅ $name escucha en el puerto 8080"
+#                vote="$dns"
+##              elif [ "$port" = "8081" ]; then
+#                echo "✅ $name escucha en el puerto 8081"
+#                result="$dns"
+#              fi
+#            done
+#          done <<< "$elbs"
 
-          if [ -z "$vote" ]; then
-            echo "❌ No se encontró ningún ELB que escuche en el puerto 8080"
-          fi
+#          if [ -z "$vote" ]; then
+#            echo "❌ No se encontró ningún ELB que escuche en el puerto 8080"
+#          fi
 
-          if [ -z "$result" ]; then
-            echo "❌ No se encontró ningún ELB que escuche en el puerto 8081"
-          fi
+#          if [ -z "$result" ]; then
+#            echo "❌ No se encontró ningún ELB que escuche en el puerto 8081"
+#          fi
 
-          echo "DNS vote: $vote"
-          echo "DNS result: $result"
+#          echo "DNS vote: $vote"
+#          echo "DNS result: $result"
 
           # Limpiar posibles saltos de línea y exportar como outputs válidos
-          echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
-          echo "result=$(echo "$result" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+#          echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+#          echo "result=$(echo "$result" | tr -d '\n\r')" >> $GITHUB_OUTPUT
 
          
-      - name: Usar DNS encontrados
-        run: |
-          echo "Vote: ${{ steps.elb_ports.outputs.vote }}"
-          echo "Result: ${{ steps.elb_ports.outputs.result }}"
+#      - name: Usar DNS encontrados
+#        if: github.ref == 'refs/heads/dev'
+#        run: |
+#          echo "Vote: ${{ steps.elb_ports.outputs.vote }}"
+#          echo "Result: ${{ steps.elb_ports.outputs.result }}"
 
 
       - name: Run JMeter Test
-        if: github.ref == 'refs/heads/dev'
         env:
-          ALB_VOTE: ${{ steps.elb_ports.outputs.vote }}
-          ALB_RESULT: ${{ steps.elb_ports.outputs.result }}
+          ALB_VOTE: ${{ secrets.ALB_VOTE }}
+          ALB_RESULT: ${{ secrets.ALB_RESULT }}
           VOTE_PORT: "8080"
           RESULT_PORT: "8081"
 
@@ -166,10 +167,9 @@ jobs:
           -o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'
    
       - name: Invocar Lambda con ALBs
-        if: github.ref == 'refs/heads/dev'  
         env:
-          ALB_RESULT: "http://${{ steps.elb_ports.outputs.result }}:8081"
-          ALB_VOTE: "http://${{ steps.elb_ports.outputs.vote }}:8080"
+          ALB_RESULT: "http://${{ secrets.ALB_RESULT }}:8081"
+          ALB_VOTE: "http://${{ secrets.ALB_VOTE }}:8080"
         run: |
           echo "Invocando Lambda con URLs: $ALB_RESULT y $ALB_VOTE"
         
@@ -185,7 +185,6 @@ jobs:
             response.json
         
       - name: Procesar resultado de Lambda
-        if: github.ref == 'refs/heads/dev'  
         id: lambda_result
         run: |
           echo "Procesando resultado de Lambda..."
