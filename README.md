@@ -379,7 +379,7 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 
 ### Decisiones de Diseño
 
-- Como se mencionó anteriormente en la documentación, se incluyó tanto la infraestructura, como el código de la aplicación en el mismo repositorio ya que, en nuestro parecer, es un proyecto pequeño que se benefició de solamente tener un lugar de trabajo. Dado que fue nuestro primer intento de despliegue automatizado de infraestructura utilizando IaC, nos resultó útil tener ambas áreas juntas y en contante testeo.
+- Como se mencionó anteriormente en la documentación, se incluyó tanto la infraestructura, como el código de la aplicación en el mismo repositorio ya que, en nuestro parecer, es un proyecto pequeño que se benefició de solamente tener un lugar de trabajo. Dado que fue nuestro primer intento de despliegue automatizado de infraestructura utilizando IaC, nos resultó útil tener ambas áreas juntas y en constante testeo.
 
 - Se utilizó un solo workflow para todos los ambientes. Se parametrizó el ambiente del cual provino el push, lo que brinda mayor flexibilidad si se desean incluir más branches en el repositorio, ya que no será necesario crear workflows dedicados para las nuevas ramas, simplemente se deben contemplan sus nombres en el condicional inicial del workflow único.
 
