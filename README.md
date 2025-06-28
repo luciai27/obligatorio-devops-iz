@@ -250,10 +250,11 @@ Infrome de sonarQube
 ## Testing
 Para la realización del testing del obligatorio se optó por pruebas de carga utilizando JMeter. Se utilizó BlazeMeter con Taurus, lo que permitió incluir un failure criteria para que el testing no continuara si fallaba una sola prueba.
 La prueba de carga que se realizó se encuentra en el archivo test.jmx y consiste en lo siguiente:
-    - <intProp name="ThreadGroup.num_threads">10</intProp>: el número de threads (usuarios) es 10.
-    - <intProp name="ThreadGroup.ramp_time">5</intProp>: JMeter demora 5 segundos para que se conecten los 10 usuarios.
-    - <longProp name="ThreadGroup.duration">15</longProp>: la duración total del test es de 15 segundos.
-    - Cada usuario repetirá la solicitud HTTP tantas veces como sea posible durante esos 15 segundos.
+
+- `<intProp name="ThreadGroup.num_threads">10</intProp>`: el número de threads (usuarios) es 10.
+- `<intProp name="ThreadGroup.ramp_time">5</intProp>`: JMeter demora 5 segundos para que se conecten los 10 usuarios.
+- `<longProp name="ThreadGroup.duration">15</longProp>`: la duración total del test es de 15 segundos.
+
 
 ## Lambda url-checker 
 
