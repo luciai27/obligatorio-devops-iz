@@ -53,5 +53,5 @@ jobs:
               result=${dns_array_8081[2]}
             fi
 
-            echo "DNS result: $result" >> $GITHUB_ENV
-            echo "DNS vote: $vote" >> $GITHUB_ENV
+            echo "DNSresult: $result" >> $GITHUB_ENV
+            echo "DNSvote: $vote" >> $GITHUB_ENV

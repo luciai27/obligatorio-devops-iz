@@ -170,14 +170,16 @@ jobs:
               result=${dns_array_8081[2]}
             fi
 
+            echo "DNS result: $result"
+
             echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
             echo "result=$(echo "$result" | tr -d '\n\r')" >> $GITHUB_OUTPUT
 
 
       - name: Run JMeter Test
         env:
-          ALB_VOTE: ${{ steps.set_env.outputs.vote }}
-          ALB_RESULT: ${{ steps.set_env.outputs.result }}
+          ALB_VOTE: "${{ steps.set_env.outputs.vote }}"
+          ALB_RESULT: "${{ steps.set_env.outputs.result }}"
           VOTE_PORT: "8080"
           RESULT_PORT: "8081"
 
