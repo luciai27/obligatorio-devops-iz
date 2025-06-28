@@ -3,8 +3,8 @@ name: CI/CD Voting App
 on:
   push:
     branches: [dev, test, main]
-  pull_request:
-    branches: [dev, test, main]
+#  pull_request:
+#    branches: [dev, test, main]
 
 env:
   TF_VERSION: 1.5.7
@@ -178,7 +178,7 @@ jobs:
             '{urls: [$url1, $url2]}')
 
           aws lambda invoke \
-            --function-name url-checker \
+            --function-name url-checker-${{ steps.set_env.outputs.env }} \
             --payload "$PAYLOAD" \
             --cli-binary-format raw-in-base64-out \
             response.json
