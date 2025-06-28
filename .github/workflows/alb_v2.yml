@@ -34,11 +34,11 @@ jobs:
             readarray -t dns_array_8080 < <( aws elb describe-load-balancers --output json | jq -r '.LoadBalancerDescriptions[] | select(.ListenerDescriptions[].Listener.LoadBalancerPort == 8080) | "\(.CreatedTime) \(.DNSName)"' | sort | awk '{print $2}')
         
             if [ "${{ steps.set_env.outputs.env }}" = "dev" ]; then
-              result=${dns_array_8080[0]}
+              vote=${dns_array_8080[0]}
             elif [ "${{ steps.set_env.outputs.env }}" = "test" ]; then
-              result=${dns_array_8080[1]}
+              vote=${dns_array_8080[1]}
             else
-              result=${dns_array_8080[2]}
+              vote=${dns_array_8080[2]}
             fi
 
             echo "DNS vote: $vote"
@@ -53,4 +53,5 @@ jobs:
               result=${dns_array_8081[2]}
             fi
 
-            echo "DNS result: $result"
+            echo "DNS result: $result" >> $GITHUB_ENV
+            echo "DNS vote: $vote" >> $GITHUB_ENV
