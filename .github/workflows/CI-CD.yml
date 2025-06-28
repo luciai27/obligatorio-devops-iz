@@ -146,6 +146,7 @@ jobs:
 #          echo "Result: ${{ steps.elb_ports.outputs.result }}"
 
       - name: Obtener ELBs por puerto (8080 y 8081)
+        id: elb_ports
         run: | 
             echo "Buscando ELBs que escuchen en 8080 y 8081..."   
             readarray -t dns_array_8080 < <( aws elb describe-load-balancers --output json | jq -r '.LoadBalancerDescriptions[] | select(.ListenerDescriptions[].Listener.LoadBalancerPort == 8080) | "\(.CreatedTime) \(.DNSName)"' | sort | awk '{print $2}')
@@ -178,8 +179,8 @@ jobs:
 
       - name: Run JMeter Test
         env:
-          ALB_VOTE: "${{ steps.set_env.outputs.vote }}"
-          ALB_RESULT: "${{ steps.set_env.outputs.result }}"
+          ALB_VOTE: "${{ steps.elb_ports.outputs.vote }}"
+          ALB_RESULT: "${{ steps.elb_ports.outputs.result }}"
           VOTE_PORT: "8080"
           RESULT_PORT: "8081"
 
