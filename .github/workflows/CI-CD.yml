@@ -145,11 +145,42 @@ jobs:
 #          echo "Vote: ${{ steps.elb_ports.outputs.vote }}"
 #          echo "Result: ${{ steps.elb_ports.outputs.result }}"
 
+      - name: Obtener ELBs por puerto (8080 y 8081)
+        id: elb_ports
+        run: | 
+            echo "Buscando ELBs que escuchen en 8080 y 8081..."   
+            readarray -t dns_array_8080 < <( aws elb describe-load-balancers --output json | jq -r '.LoadBalancerDescriptions[] | select(.ListenerDescriptions[].Listener.LoadBalancerPort == 8080) | "\(.CreatedTime) \(.DNSName)"' | sort | awk '{print $2}')
+        
+            if [ "${{ steps.set_env.outputs.env }}" = "dev" ]; then
+              vote=${dns_array_8080[0]}
+            elif [ "${{ steps.set_env.outputs.env }}" = "test" ]; then
+              vote=${dns_array_8080[1]}
+            else
+              vote=${dns_array_8080[2]}
+            fi
+
+            echo "DNS vote: $vote"
+
+            readarray -t dns_array_8081 < <( aws elb describe-load-balancers --output json | jq -r '.LoadBalancerDescriptions[] | select(.ListenerDescriptions[].Listener.LoadBalancerPort == 8081) | "\(.CreatedTime) \(.DNSName)"' | sort | awk '{print $2}')
+        
+            if [ "${{ steps.set_env.outputs.env }}" = "dev" ]; then
+              result=${dns_array_8081[0]}
+            elif [ "${{ steps.set_env.outputs.env }}" = "test" ]; then
+              result=${dns_array_8081[1]}
+            else
+              result=${dns_array_8081[2]}
+            fi
+
+            echo "DNS result: $result"
+
+            echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+            echo "result=$(echo "$result" | tr -d '\n\r')" >> $GITHUB_OUTPUT
+
 
       - name: Run JMeter Test
         env:
-          ALB_VOTE: ${{ secrets.ALB_VOTE }}
-          ALB_RESULT: ${{ secrets.ALB_RESULT }}
+          ALB_VOTE: "${{ steps.elb_ports.outputs.vote }}"
+          ALB_RESULT: "${{ steps.elb_ports.outputs.result }}"
           VOTE_PORT: "8080"
           RESULT_PORT: "8081"
 
@@ -168,8 +199,8 @@ jobs:
    
       - name: Invocar Lambda con ALBs
         env:
-          ALB_RESULT: "http://${{ secrets.ALB_RESULT }}:8081"
-          ALB_VOTE: "http://${{ secrets.ALB_VOTE }}:8080"
+          ALB_RESULT: "http://${{ steps.elb_ports.outputs.result }}:8081"
+          ALB_VOTE: "http://${{ steps.elb_ports.outputs.vote }}:8080"
         run: |
           echo "Invocando Lambda con URLs: $ALB_RESULT y $ALB_VOTE"
         
