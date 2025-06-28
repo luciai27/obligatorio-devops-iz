@@ -1,0 +1,47 @@
+name: Buscar ALBs v2
+
+on:
+  push:
+    branches: [dev, test, main]
+  pull_request:
+    branches: [dev, test, main]
+
+jobs:
+  buscar-albs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configurar credenciales AWS
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          
+      - name: Obtener ELBs por puerto (8080 y 8081)
+        run: | 
+            echo "Buscando ELBs que escuchen en 8080 y 8081..."   
+            readarray -t dns_array < <( aws elb describe-load-balancers --output json | jq -r '.LoadBalancerDescriptions[] | select(.ListenerDescriptions[].Listener.LoadBalancerPort == 8080) | "\(.CreatedTime) \(.DNSName)"' | sort | awk '{print $2}')
+        
+            if [ "${{ steps.set_env.outputs.env }}" = "dev" ]; then
+              vote=${dns_array[0]}
+            elif [ "${{ steps.set_env.outputs.env }}" = "test" ]; then
+              vote=${dns_array[1]}
+            else
+              vote=${dns_array[2]}
+            fi
+
+            echo "DNS vote: $vote"
+
+            readarray -t dns_array < <( aws elb describe-load-balancers --output json | jq -r '.LoadBalancerDescriptions[] | select(.ListenerDescriptions[].Listener.LoadBalancerPort == 8081) | "\(.CreatedTime) \(.DNSName)"' | sort | awk '{print $2}')
+        
+            if [ "${{ steps.set_env.outputs.env }}" = "dev" ]; then
+              result=${dns_array[0]}
+            elif [ "${{ steps.set_env.outputs.env }}" = "test" ]; then
+              result=${dns_array[1]}
+            else
+              result=${dns_array[2]}
+            fi
+
+            echo "DNS result: $result"
