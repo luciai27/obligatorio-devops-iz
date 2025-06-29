@@ -229,21 +229,27 @@ Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
  Se eligió Amazon Elastic Kubernetes Service (EKS) por las siguientes razones:
 
 **✅ Escalabilidad automática**
+
 EKS permite escalar dinámicamente pods y nodos según la carga, garantizando que servicios como vote o result puedan atender picos de tráfico sin intervención manual.
 
 **🔐 Alta disponibilidad y seguridad**
+
 Al estar distribuido entre zonas de disponibilidad (AZs) y con integración a IAM, EKS asegura resiliencia y un control de acceso robusto a los recursos del clúster.
 
 **⚙️ Automatización del despliegue (CI/CD)**
+
 La infraestructura de EKS se integra perfectamente con pipelines CI/CD (como GitHub Actions), lo que facilita el despliegue continuo de contenedores con comandos como kubectl apply.
 
 **🔁 Rolling updates sin downtime**
+
 Kubernetes permite realizar actualizaciones de los servicios de forma progresiva, manteniendo siempre al menos una instancia operativa, lo que evita interrupciones en producción.
 
 **📦 Diseño contenerizado natural**
+
 La Voting App está dividida en servicios como vote, result, db, worker y redis, cada uno en su propio contenedor, lo que encaja perfectamente con el modelo de despliegue en Kubernetes.
 
 **☁️ Integración nativa con AWS**
+
 EKS facilita el uso de otros servicios como S3 (almacenamiento), CloudWatch (monitoreo), Load Balancers (exposición de servicios), Lambda (verificación de estado) y más, sin configuración extra compleja.
 
 ![EKS_arquitectura.png](/IMG/EKS_arquitectura.png)
