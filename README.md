@@ -6,6 +6,7 @@
 - **Análisis de código estático:** SonarQube  
 - **Cloud:** AWS
 - **Orquestador:** EKS
+- **Repositorio:** ECR
 - **Infraestructura como Código (IaC):** Terraform  
 - **Testing:** JMeter
 - **Serverless:** Lambda 
@@ -254,6 +255,37 @@ EKS facilita el uso de otros servicios como S3 (almacenamiento), CloudWatch (mon
 
 ![EKS_arquitectura.png](/IMG/EKS_arquitectura.png)
 
+ ## 🔧 ECR Amazon Elastic Container Registry
+
+ Se utilizó Amazon Elastic Container Registry (ECR) como repositorio privado para almacenar las imágenes Docker generadas en el pipeline por los siguientes motivos:
+
+ **Integración nativa con EKS**
+ 
+ Permite que los pods del clúster descarguen imágenes directamente desde ECR sin configuración adicional.
+
+ **Seguridad y control de acceso**
+ 
+ ECR se integra con IAM para definir políticas de acceso seguras para subir, listar o descargar imágenes.
+
+ **Automatización con CI/CD**
+ 
+ Es compatible con GitHub Actions y facilita el versionado automático de imágenes por rama (dev, test, main).
+
+ **Alto rendimiento y disponibilidad**
+ 
+ Al estar alojado en AWS, garantiza disponibilidad y baja latencia en la entrega de imágenes a los nodos EKS.
+
+ Sin necesidad de configurar y mantener un registry externo
+ 
+ Evita complejidad operativa y costos de autohospedar un registry.
+
+ Las imagenes se suben con un tag, en la cual se le llama TAG_COMBINADO, se genera en el script build-and-push.sh, TAG_COMBINADO="$BRANCH_TAG-$COMMIT_HASH", se almacene en el registry de aws.
+
+ En esta dos linea es donde se indica la creacion del ECR, de forma automatica:
+ 
+ ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+ 
+ ECR_BASE_URL="$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com"
 
  ## 📖 Análisis estático 
    - Se ejecuta SonarQube en cada push para evaluar calidad de código
