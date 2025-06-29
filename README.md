@@ -89,21 +89,21 @@ Componentes:
 
 ## 🚀 Flow de CI/CD
 
-1. **Push a una rama (`dev`, `test`, `main`)**
-   - Se configuran credenciales AWS
-   - Se crean repositorios ECR para imágenes
-   - Se genera una nueva imagen Docker con tag único
-   - Se sube la imagen a ECR con tag de entorno
-   - Se actualiza el archivo `docker-compose.generated.yml` con el tag generado
-   - El archivo `docker-compose.generated.yml` se sube a bucket S3
-   - Se crea la infraestructura común a todos los ambientes (network)
-   - Se crea la infrastructura correspondiente al ambiente del push
-   - Se remplazan variables y se despliegan manifiestos K8s
-   - Se prepara ambiente para testing
-   - Se buscan los URL de los ALBs y setean como variables
-   - Se realiza testing de carga en ALBs creados por K8s (Vote y Result)
-   - Se invoca función Lambda para verificación de estado de URLs
-   - Se procesan resultados y se envía notificación por correo electrónico
+1. ▶ Push a una rama (`dev`, `test`, `main`)
+2. Se configuran credenciales AWS
+3. Se crean repositorios ECR para imágenes
+4. Se genera una nueva imagen Docker con tag único
+5. Se sube la imagen a ECR con tag de entorno
+6. Se actualiza el archivo `docker-compose.generated.yml` con el tag generado
+7. El archivo `docker-compose.generated.yml` se sube a bucket S3
+8. Se crea la infraestructura común a todos los ambientes (network)
+9. Se crea la infrastructura correspondiente al ambiente del push
+10. Se remplazan variables y se despliegan manifiestos K8s
+11. Se prepara ambiente para testing
+12. Se buscan los URL de los ALBs y setean como variables
+13. Se realiza testing de carga en ALBs creados por K8s (Vote y Result)
+14. Se invoca función Lambda para verificación de estado de URLs
+15. 🔚 Se procesan resultados y se envía notificación por correo electrónico
 
 🛠️ Diagrama de Flujo - CI/CD Voting App
 ```text
