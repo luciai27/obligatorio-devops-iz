@@ -157,7 +157,7 @@ Inicio
 
 ```
 
- ## Terraform Deploy
+ ## 🏛 Terraform Deploy
    - La estructura de infraestructura es la siguiente
    ```text  
         infra/
@@ -247,7 +247,7 @@ Infrome de sonarQube
 
 ![Informe_SonarQube.docx](/IMG/Informe_SonarQube.docx)
 
-## Testing
+## 🐞 Testing
 Para la realización del testing del obligatorio se optó por pruebas de carga utilizando JMeter. Se usó BlazeMeter con Taurus, lo que permitió incluir un failure criteria.
 La prueba de carga que se realizó se encuentra en el archivo test.jmx y consiste en lo siguiente:
 
@@ -259,9 +259,9 @@ La prueba de carga que se realizó se encuentra en el archivo test.jmx y consist
 En el pipeline de CI/CD se incluyó la linea "-o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'", que fue lo que nos permitió forzar el rompimiento del pipeline si alguna de las pruebas lograba un resultado insatisfactorio (cualquier cosa menor que 100% success). Dado que el flujo no sigue si el test falla, el mismo consituyó otra **Quality Gate**.
 
 
-## Lambda url-checker 
+## 🟢 Lambda url-checker 
 
-Verificación de disponibilidad de servicios
+**Verificación de disponibilidad de servicios**
 
 Esta función Lambda fue desarrollada con el objetivo de monitorear la disponibilidad de los servicios frontend de la Voting App desplegados en AWS (por ejemplo, las aplicaciones vote y result publicadas detrás de ALBs).
 
@@ -283,7 +283,8 @@ Verificación HTTP de múltiples endpoints.
 
 Alerta automática por correo en caso de falla.
 
-Seguridad y buenas prácticas
+**Seguridad y buenas prácticas**
+
 La función está empaquetada en ZIP incluyendo la librería requests como dependencia externa.
 
 Utiliza verify=False para ignorar certificados autofirmados durante el testeo, evitando falsos negativos en ambientes no productivos.
@@ -302,7 +303,7 @@ Envía un correo a un destinatario configurable con detalles del error
    - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
 
 
-## Cloudwatch
+## ⌚ Cloudwatch
 
 
 ## 🚧 CodeQL y  super-linter como *Quality Gate* en el Proceso de Integración Continua
@@ -380,7 +381,7 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 ![IMG/Trello 3.png](IMG/Trello%203.png)
 
 
-### Decisiones de Diseño
+### 📏 Decisiones de Diseño
 
 - Como se mencionó anteriormente en la documentación, se incluyó tanto la infraestructura, como el código de la aplicación en el mismo repositorio ya que, en nuestro parecer, es un proyecto pequeño que se benefició de solamente tener un lugar de trabajo. Dado que fue nuestro primer intento de despliegue automatizado de infraestructura utilizando IaC, nos resultó útil tener ambas áreas juntas y en constante testeo.
 
@@ -400,7 +401,7 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 
 - Si los pipelines de "super-linter.yml" o "codeql-analysis.yml" no llegan a completarse, esto no contituye un error, ya que se continúa con el despliegue de la infraestructura. En el caso de "codeql-analysis", éste termina de forma correcta, mientras que para "super-linter", es posible que no se complete dado que es una revision de HTML, CSS y otros archivos de código, que no nos corresponde arreglar en el presente obligatorio.
 
-### Lecciones aprendidas
+### 🎀 Lecciones aprendidas
 
 - Al principio luchamos mucho con la lógica y la creación de la Infraestructura como Código, ya que estábamos tratando de crear subnets privadas y públicas conectadas a través de NAT gateways para mantener la seguridad de los clusters. Nos dimos cuenta que a veces menos es más, por lo menos en el caso del obligatorio. Nos gustaría poder modificarlo luego con una infraestructura similar a la mencionada.
 
