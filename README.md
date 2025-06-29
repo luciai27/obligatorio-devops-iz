@@ -248,12 +248,15 @@ Infrome de sonarQube
 ![Informe_SonarQube.docx](/IMG/Informe_SonarQube.docx)
 
 ## Testing
-Para la realización del testing del obligatorio se optó por pruebas de carga utilizando JMeter. Se utilizó BlazeMeter con Taurus, lo que permitió incluir un failure criteria para que el testing no continuara si fallaba una sola prueba.
+Para la realización del testing del obligatorio se optó por pruebas de carga utilizando JMeter. Se usó BlazeMeter con Taurus, lo que permitió incluir un failure criteria.
 La prueba de carga que se realizó se encuentra en el archivo test.jmx y consiste en lo siguiente:
 
 - `<intProp name="ThreadGroup.num_threads">10</intProp>`: el número de threads (usuarios) es 10.
 - `<intProp name="ThreadGroup.ramp_time">5</intProp>`: JMeter demora 5 segundos para que se conecten los 10 usuarios.
 - `<longProp name="ThreadGroup.duration">15</longProp>`: la duración total del test es de 15 segundos.
+- Cada usuario ejecutará la solicitud HTTP tan rápido como sea posible hasta que hayan transcurrido los 15 segundos.
+
+En el pipeline de CI/CD se incluyó la linea "-o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'", que fue lo que nos permitió forzar el rompimiento del pipeline si alguna de las pruebas lograba un resultado insatisfactorio (cualquier cosa menor que 100% success). Dado que el flujo no sigue si el test falla, el mismo consituyó otra **Quality Gate**.
 
 
 ## Lambda url-checker 
