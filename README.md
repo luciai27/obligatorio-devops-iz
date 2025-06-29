@@ -299,6 +299,9 @@ Si alguna URL no responde con 200 OK, el workflow:
 ## Notificación
    - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
 
+ ![Notifs](/IMG/Notifs.png)
+
+
 ---
 
 ## ⌚ Cloudwatch
@@ -413,11 +416,13 @@ Las configuraciones de las **branch protection rules** son las siguientes:
     - Configuraciones de infraestructura específicas: cada clúster puede tener configuraciones de red, almacenamiento, balanceadores de carga o tipos de instancias subyacentes optimizadas para las necesidades específicas de ese ambiente (ej: menor costo en dev, alta disponibilidad y performance en main). Si bien en el obligatorio se utilizaron las mismas propiedades en todos los ambientes, se tuvo este punto en cuenta.
     - Especificaciones de EKS: Se utilizaron 2 subnets públicas ya que fue el menor número de subnets permitidas por EKS para la creación de clusters.
 
-- Para la IaC no se utilizaron módulos pero se utilizó el mismo contenido del main.tf, solamente con variables diferenciadas por ambiente, lo que facilitó la realización de cambios y nos otorgó flexibilidad.
+- Para la conexión de los clusters a internet, simplemente se cambió el "spec: type" de NodePort a LoadBalancer en los manifiestos de Service de Vote y Result. Eso generó que AWS cree automáticamente los ALBs necesarios para permitir el tráfico hacia la aplicación. Si bien fue algo simple de modificar, esto nos generó problemas a la hora de buscar los URLs de los ALBs utilizados, ya que no aparecían en la parte de "Ingresses" o "IngressClasses" en la sección "Resources" de los clusters.
 
-- No se utilizó la estrategia de feature branch para el desarrollo de la infraestructura dado que se creó en el mismo repositorio que la aplicación y no nos restuló práctico utilizar esta estrategia durante el transcurso del proyeto.
+- Para la IaC no se utilizaron módulos, pero se utilizó el mismo contenido del main.tf con variables diferenciadas por ambiente, lo que facilitó la realización de cambios y nos otorgó flexibilidad.
 
-- El testing de carga se aplicó como quality gate, es decir, si el mismo falla, se cancela el resto del pipeline. El failure criteria se estableció en menos de "100% success", o sea, mientras nada falle, seguirá el pipeline.
+- No se utilizó la estrategia de Feature Branch para el desarrollo de la infraestructura dado que se creó en el mismo repositorio que la aplicación y no nos restuló práctico utilizar esta estrategia durante el transcurso del proyeto.
+
+- El testing de carga se aplicó como Quality Gate, es decir, si el mismo falla, se cancela el resto del pipeline. El failure criteria se estableció en menos de "100% success", o sea, mientras nada falle, seguirá el pipeline.
 
 - Si los pipelines de "super-linter.yml" o "codeql-analysis.yml" no llegan a completarse, esto no contituye un error, ya que se continúa con el despliegue de la infraestructura. En el caso de "codeql-analysis", éste termina de forma correcta, mientras que para "super-linter", es posible que no se complete dado que es una revision de HTML, CSS y otros archivos de código, que no nos corresponde arreglar en el presente obligatorio.
 
