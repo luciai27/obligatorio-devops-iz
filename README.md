@@ -301,7 +301,7 @@ Si alguna URL no responde con 200 OK, el workflow:
 ## ⌚ Cloudwatch
  Para el monitoreo y observabilidad se utilizó CloudWatch, un servicio propio de AWS. El mismo está constituido por dos partes principales: el dashboard y las alarmas.
 
- El **dashboard** es creado en terraform en la parte de despliegue de infraestructura. El mismo mantiene un registro de métricas de la utilización de CPU de las instancias utilizadas por los worker nodes del cluster para correr los contenedores de la aplicación y se despliega individualmente para cada ambiente.
+ El **dashboard** es creado en terraform en la parte de despliegue de infraestructura. El mismo mantiene un registro de métricas de la utilización de CPU de las instancias del worker node del cluster que se usan para correr los contenedores de la aplicación. Se crea una dashboard para cada ambiente.
 
  ![Dashboard](/IMG/Dashboard.png)
 
