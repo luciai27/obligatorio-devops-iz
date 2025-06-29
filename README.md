@@ -299,7 +299,24 @@ Si alguna URL no responde con 200 OK, el workflow:
 ---
 
 ## ⌚ Cloudwatch
+ Para el monitoreo y observabilidad se utilizó CloudWatch, un servicio propio de AWS. El mismo está constituido por dos partes principales: el dashboard y las alarmas.
 
+ El **dashboard** es creado en terraform en la parte de despliegue de infraestructura. El mismo mantiene un registro de métricas de la utilización de CPU de las instancias utilizadas por los worker nodes del cluster para correr los contenedores de la aplicación y se despliega individualmente para cada ambiente.
+
+ ![Dashboard](/IMG/Dashboard.png)
+
+
+ Por otro lado, si bien se intentó incluir las alarmas en el archivo de terraform también, no logramos hacerlas funcionar, por lo que se crearon manualmente de la siguente manera:
+ - Se ingresa a la pestaña de CloudWatch y se selecciona "All Alarms" del menú de la izquierda.
+ - Se hace click en "Create Alarm".
+ - Se selecciona una métrica de la sección EKS para la cual deseamos crear una alarma (en nuestro caso, solicitudes HTTP que resultaron en código 5XX -error de servidor- y cantidad de intentos fallados del scheduler para desplegar los pods por error interno).
+ - Se configuran los detalles de nombre, cluster, tipo de estadística y el período (en nuestro caso, todo por defecto).
+ - Se establecen las condiciones para la alarma (en nuestro caso, "static" y "greater than 5").
+ - Se selecciona "In alarm" y "Create new topic" para la recepción de notificación de alarma. Se agrega correo electrónico que recibirá la notificación.
+ - Se agrega nombre de alarma (en nuestro caso "5XX_alarm" y "PodsFailed_alarm") y una descripción, si se desea.
+ - Se confirma la creación de la alarma.
+
+![Alarm](/IMG/Alarm.png)
 
 
 ---
