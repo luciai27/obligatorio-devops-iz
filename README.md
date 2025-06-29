@@ -221,7 +221,7 @@ Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
 
 ---
 
- ## Análisis estático 
+ ##📖 Análisis estático 
    - Se ejecuta SonarQube en cada push para evaluar calidad de código
    - Se usa el GitHub Action oficial de SonarCloud o configuración personalizada con `sonar-scanner`
    - SonarQube permite mejorar la calidad del código automáticamente al analizarlo en busca de errores, vulnerabilidades, código duplicado y malas prácticas. Facilita el mantenimiento, reduce el riesgo de fallos en producción y promueve buenas prácticas de desarrollo mediante métricas claras e integraciones con CI/CD. Además, ayuda a asegurar que el código nuevo  no degrade la calidad existente.
@@ -243,9 +243,11 @@ Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
 
    - Verificar que las rutas (`sonar.sources`) coincidan con el código fuente real
 
-Infrome de sonarQube
+ ### Infrome de sonarQube
 
 ![Informe_SonarQube.docx](/IMG/Informe_SonarQube.docx)
+
+---
 
 ## 🐞 Testing
 Para la realización del testing del obligatorio se optó por pruebas de carga utilizando JMeter. Se usó BlazeMeter con Taurus, lo que permitió incluir un failure criteria.
@@ -258,6 +260,7 @@ La prueba de carga que se realizó se encuentra en el archivo test.jmx y consist
 
 En el pipeline de CI/CD se incluyó la linea "-o reporting='[{"module": "passfail", "criteria": ["succ<100%,stop as failed"]}]'", que fue lo que nos permitió forzar el rompimiento del pipeline si alguna de las pruebas lograba un resultado insatisfactorio (cualquier cosa menor que 100% success). Dado que el flujo no sigue si el test falla, el mismo consituyó otra **Quality Gate**.
 
+---
 
 ## 🟢 Lambda url-checker 
 
@@ -270,41 +273,36 @@ Esta función Lambda fue desarrollada con el objetivo de monitorear la disponibi
    |_lambda.zip
  ```
 
-   
-Se invoca automáticamente desde el pipeline de CI/CD en GitHub Actions, luego del despliegue de infraestructura y servicios, para verificar que las URLs estén accesibles y respondiendo correctamente.
+Algunas caracterísitcas son:
+- Se invoca automáticamente desde el pipeline de CI/CD en GitHub Actions, luego del despliegue de infraestructura y servicios, para verificar que las URLs estén accesibles y respondiendo correctamente.
+- Permite detectar errores tempranos en el pipeline si algún servicio clave no responde (503, timeout, etc.).
+- Facilita la automatización de health checks post-despliegue sin necesidad de herramientas externas.
 
-Permite detectar errores tempranos en el pipeline si algún servicio clave no responde (503, timeout, etc.).
-
-Facilita la automatización de health checks post-despliegue sin necesidad de herramientas externas.
-
-Aporta visibilidad del estado real de la aplicación al finalizar el CI/CD, integrando:
-
-Verificación HTTP de múltiples endpoints.
-
-Alerta automática por correo en caso de falla.
+Además, aporta visibilidad del estado real de la aplicación al finalizar el CI/CD, integrando:
+- Verificación HTTP de múltiples endpoints.
+- Alerta automática por correo en caso de falla.
 
 **Seguridad y buenas prácticas**
 
-La función está empaquetada en ZIP incluyendo la librería requests como dependencia externa.
-
-Utiliza verify=False para ignorar certificados autofirmados durante el testeo, evitando falsos negativos en ambientes no productivos.
-
-Responde con un JSON estructurado con los resultados individuales por URL.
-
-La salida de la Lambda es procesada automáticamente en el pipeline.
+- La función está empaquetada en ZIP incluyendo la librería requests como dependencia externa.
+- Utiliza verify=False para ignorar certificados autofirmados durante el testeo, evitando falsos negativos en ambientes no productivos.
+- Responde con un JSON estructurado con los resultados individuales por URL.
+- La salida de la Lambda es procesada automáticamente en el pipeline.
 
 Si alguna URL no responde con 200 OK, el workflow:
-
-Se marca como fallido (exit 1)
-
-Envía un correo a un destinatario configurable con detalles del error
+- Se marca como fallido (exit 1)
+- Envía un correo a un destinatario configurable con detalles del error
 
 ## Notificación
    - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
 
+---
 
 ## ⌚ Cloudwatch
 
+
+
+---
 
 ## 🚧 CodeQL y  super-linter como *Quality Gate* en el Proceso de Integración Continua
 
@@ -381,6 +379,8 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 ![IMG/Trello 3.png](IMG/Trello%203.png)
 
 
+---
+
 ### 📏 Decisiones de Diseño
 
 - Como se mencionó anteriormente en la documentación, se incluyó tanto la infraestructura, como el código de la aplicación en el mismo repositorio ya que, en nuestro parecer, es un proyecto pequeño que se benefició de solamente tener un lugar de trabajo. Dado que fue nuestro primer intento de despliegue automatizado de infraestructura utilizando IaC, nos resultó útil tener ambas áreas juntas y en constante testeo.
@@ -400,6 +400,9 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 - El testing de carga se aplicó como quality gate, es decir, si el mismo falla, se cancela el resto del pipeline. El failure criteria se estableció en menos de "100% success", o sea, mientras nada falle, seguirá el pipeline.
 
 - Si los pipelines de "super-linter.yml" o "codeql-analysis.yml" no llegan a completarse, esto no contituye un error, ya que se continúa con el despliegue de la infraestructura. En el caso de "codeql-analysis", éste termina de forma correcta, mientras que para "super-linter", es posible que no se complete dado que es una revision de HTML, CSS y otros archivos de código, que no nos corresponde arreglar en el presente obligatorio.
+
+
+---
 
 ### 🎀 Lecciones aprendidas
 
