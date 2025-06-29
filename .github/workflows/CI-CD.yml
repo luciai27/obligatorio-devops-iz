@@ -3,8 +3,7 @@ name: CI/CD Voting App
 on:
   push:
     branches: [dev, test, main]
-#  pull_request:
-#    branches: [dev, test, main]
+
 
 env:
   TF_VERSION: 1.5.7
@@ -91,59 +90,6 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install bzt
 
-
-#      - name: Obtener ELBs por puerto (8080 y 8081)
-#        if: github.ref == 'refs/heads/dev'
-#        id: elb_ports
-#        run: |
-#          echo "Buscando ELBs que escuchen en 8080 y 8081..."
-
-#          vote="" 
-#          result=""
-
-#          elbs=$(aws elb describe-load-balancers \
-#            --query "LoadBalancerDescriptions[*].[LoadBalancerName,DNSName]" \
-#            --output text)
-
- #         while read -r name dns; do
-#            echo "Revisando $name ($dns)..."
-#            ports=$(aws elb describe-load-balancers \
-#              --load-balancer-name "$name" \
-#              --query "LoadBalancerDescriptions[0].ListenerDescriptions[*].Listener.LoadBalancerPort" \
-#              --output text)
-
-#            for port in $ports; do
-#              if [ "$port" = "8080" ]; then
-#                echo "✅ $name escucha en el puerto 8080"
-#                vote="$dns"
-##              elif [ "$port" = "8081" ]; then
-#                echo "✅ $name escucha en el puerto 8081"
-#                result="$dns"
-#              fi
-#            done
-#          done <<< "$elbs"
-
-#          if [ -z "$vote" ]; then
-#            echo "❌ No se encontró ningún ELB que escuche en el puerto 8080"
-#          fi
-
-#          if [ -z "$result" ]; then
-#            echo "❌ No se encontró ningún ELB que escuche en el puerto 8081"
-#          fi
-
-#          echo "DNS vote: $vote"
-#          echo "DNS result: $result"
-
-          # Limpiar posibles saltos de línea y exportar como outputs válidos
-#          echo "vote=$(echo "$vote" | tr -d '\n\r')" >> $GITHUB_OUTPUT
-#          echo "result=$(echo "$result" | tr -d '\n\r')" >> $GITHUB_OUTPUT
-
-         
-#      - name: Usar DNS encontrados
-#        if: github.ref == 'refs/heads/dev'
-#        run: |
-#          echo "Vote: ${{ steps.elb_ports.outputs.vote }}"
-#          echo "Result: ${{ steps.elb_ports.outputs.result }}"
 
       - name: Obtener ELBs por puerto (8080 y 8081)
         id: elb_ports
@@ -248,7 +194,6 @@ jobs:
           username: ${{ secrets.EMAIL_USER }}
           password: ${{ secrets.EMAIL_PASS }}
           subject: ${{ steps.lambda_result.outputs.subject }}
-          #to: gzunino@urudata.com 
           to: ${{ secrets.REPO_OWNER_MAIL }}
           from: "CI/CD Bot <${{ secrets.EMAIL_USER }}>"
           body: |
