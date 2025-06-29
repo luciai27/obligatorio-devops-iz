@@ -142,7 +142,7 @@ Inicio
                                                                         ├── aws eks update-kubeconfig
                                                                         └── kubectl apply -f k8s-specifications
                                                                             └── 🔍 Seteo de ambiente y config para Testing
-                                                                                └── Obtención de URL de ALBs
+                                                                                └── 🟨 Obtención de URL de ALBs
                                                                                     ├── busca por puerto 8080
                                                                                     ├── setea dependiendo del ambiente
                                                                                     ├── busca por puerto 8081
