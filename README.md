@@ -4,7 +4,8 @@
 - **Repositorio:** GitHub  
 - **CI/CD:** GitHub Actions  
 - **Análisis de código estático:** SonarQube  
-- **Cloud:** AWS  
+- **Cloud:** AWS
+- **Orquestador:** EKS
 - **Infraestructura como Código (IaC):** Terraform  
 - **Testing:** JMeter
 - **Serverless:** Lambda 
@@ -223,11 +224,35 @@ Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
 📌 *EXTRA* Además con esta estructura podemos automatizar despliegues por entorno.
 
 ---
+ ## ☸️ Orquestador
+ 
+ Se eligió Amazon Elastic Kubernetes Service (EKS) por las siguientes razones:
+
+**✅ Escalabilidad automática**
+EKS permite escalar dinámicamente pods y nodos según la carga, garantizando que servicios como vote o result puedan atender picos de tráfico sin intervención manual.
+
+**🔐 Alta disponibilidad y seguridad**
+Al estar distribuido entre zonas de disponibilidad (AZs) y con integración a IAM, EKS asegura resiliencia y un control de acceso robusto a los recursos del clúster.
+
+**⚙️ Automatización del despliegue (CI/CD)**
+La infraestructura de EKS se integra perfectamente con pipelines CI/CD (como GitHub Actions), lo que facilita el despliegue continuo de contenedores con comandos como kubectl apply.
+
+**🔁 Rolling updates sin downtime**
+Kubernetes permite realizar actualizaciones de los servicios de forma progresiva, manteniendo siempre al menos una instancia operativa, lo que evita interrupciones en producción.
+
+**📦 Diseño contenerizado natural**
+La Voting App está dividida en servicios como vote, result, db, worker y redis, cada uno en su propio contenedor, lo que encaja perfectamente con el modelo de despliegue en Kubernetes.
+
+**☁️ Integración nativa con AWS**
+EKS facilita el uso de otros servicios como S3 (almacenamiento), CloudWatch (monitoreo), Load Balancers (exposición de servicios), Lambda (verificación de estado) y más, sin configuración extra compleja.
+
+![EKS_arquitectura.png](/IMG/EKS_arquitectura.png)
+
 
  ## 📖 Análisis estático 
    - Se ejecuta SonarQube en cada push para evaluar calidad de código
    - Se usa el GitHub Action oficial de SonarCloud o configuración personalizada con `sonar-scanner`
-   - SonarQube permite mejorar la calidad del código automáticamente al analizarlo en busca de errores, vulnerabilidades, código duplicado y malas prácticas. Facilita el mantenimiento, reduce el riesgo de fallos en producción y promueve buenas prácticas de desarrollo mediante métricas claras e integraciones con CI/CD. Además, ayuda a asegurar que el código nuevo  no degrade la calidad existente.
+   - SonarQube permite mejorar la calidad del código automáticamente al analizarlo en busca de errores, vulnerabilidades, código duplicado y malas prácticas. Facilita el mantenimiento, reduce el riesgo de fallos en producción y promueve buenas prácticas de desarrollo mediante métricas claras e integraciones con            CI/CD. Además, ayuda a asegurar que el código nuevo  no degrade la calidad existente.
 
    #### Prerrequisitos SonarQube:
    - Tener un proyecto creado en [SonarCloud](https://sonarcloud.io/) o en tu instancia propia de SonarQube
