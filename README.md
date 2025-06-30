@@ -193,30 +193,30 @@ Inicio
 ```
 Tomamos la decisión de esta estructura para la infraestructura por los siguientes motivos:
 
-**Separación clara por entorno**
+☀ **Separación clara por entorno**
 
 Cada entorno (dev, test, main) tiene su propio conjunto de archivos Terraform:
    - Permite aplicar cambios de forma independiente.
    - Reduce el riesgo de errores al evitar que cambios en desarrollo afecten producción.
    - Facilita pruebas y validaciones antes de promover cambios.
      
- **Reutilización**
+🔃 **Reutilización**
  
  La carpeta network define infraestructura en común para todos los ambientes, VPC, IGW, etc. 
 
- **Escalabilidad**
+↗ **Escalabilidad**
  
  Es facilmente escalable, se puede agregar nuevos entornos sin modificar los existintes
 
- **Gestión de variables por entorno**
+💭 **Gestión de variables por entorno**
 
  Cada entorno tiene su propio terraform.tfvars, permite definir configuraciones específicas (nombres, tamaños, regiones, etc.) sin duplicar lógica, mejora la trazabilidad y el control de cambios.
  
- **Cumplimiento y auditoría**
+📑 **Cumplimiento y auditoría**
 
  Separar entornos ayuda a cumplir con políticas de seguridad y auditoría.
 
- **Prácticas Devops**
+👔 **Prácticas Devops**
  
  Se tomaron en consideración las prácticas más comunes de Devops. Cada ambiente tiene su propio cluster EKS (en vez de tener un solo cluster con tres namespaces).
 
@@ -259,23 +259,23 @@ EKS facilita el uso de otros servicios como S3 (almacenamiento), CloudWatch (mon
 
  Se utilizó Amazon Elastic Container Registry (ECR) como repositorio privado para almacenar las imágenes Docker generadas en el pipeline por los siguientes motivos:
 
- **Integración nativa con EKS**
+🥇 **Integración nativa con EKS**
  
  Permite que los pods del clúster descarguen imágenes directamente desde ECR sin configuración adicional.
 
- **Seguridad y control de acceso**
+🔐 **Seguridad y control de acceso**
  
  ECR se integra con IAM para definir políticas de acceso seguras para subir, listar o descargar imágenes.
 
- **Automatización con CI/CD**
+▶ **Automatización con CI/CD**
  
  Es compatible con GitHub Actions y facilita el versionado automático de imágenes por rama (dev, test, main).
 
- **Alto rendimiento y disponibilidad**
+✅ **Alto rendimiento y disponibilidad**
  
  Al estar alojado en AWS, garantiza disponibilidad y baja latencia en la entrega de imágenes a los nodos EKS.
 
- Sin necesidad de configurar y mantener un registry externo
+ 🏠**Sin necesidad de configurar y mantener un registry externo**
  
  Evita complejidad operativa y costos de autohospedar un registry.
 
@@ -348,7 +348,7 @@ Además, aporta visibilidad del estado real de la aplicación al finalizar el CI
 - Verificación HTTP de múltiples endpoints.
 - Alerta automática por correo en caso de falla.
 
-**Seguridad y buenas prácticas**
+🔐**Seguridad y buenas prácticas**
 
 - La función está empaquetada en ZIP incluyendo la librería requests como dependencia externa.
 - Utiliza verify=False para ignorar certificados autofirmados durante el testeo, evitando falsos negativos en ambientes no productivos.
@@ -359,7 +359,7 @@ Si alguna URL no responde con 200 OK, el workflow:
 - Se marca como fallido (exit 1)
 - Envía un correo a un destinatario configurable con detalles del error
 
-## Notificación
+✉ ## Notificación
    - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
 
  ![Notifs](/IMG/Notifs.png)
