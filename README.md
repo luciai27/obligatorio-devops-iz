@@ -275,7 +275,7 @@ EKS facilita el uso de otros servicios como S3 (almacenamiento), CloudWatch (mon
  
  Al estar alojado en AWS, garantiza disponibilidad y baja latencia en la entrega de imágenes a los nodos EKS.
 
- 🏠**Sin necesidad de configurar y mantener un registry externo**
+ 🏠 **Sin necesidad de configurar y mantener un registry externo**
  
  Evita complejidad operativa y costos de autohospedar un registry.
 
@@ -348,7 +348,7 @@ Además, aporta visibilidad del estado real de la aplicación al finalizar el CI
 - Verificación HTTP de múltiples endpoints.
 - Alerta automática por correo en caso de falla.
 
-🔐**Seguridad y buenas prácticas**
+🔐 **Seguridad y buenas prácticas**
 
 - La función está empaquetada en ZIP incluyendo la librería requests como dependencia externa.
 - Utiliza verify=False para ignorar certificados autofirmados durante el testeo, evitando falsos negativos en ambientes no productivos.
@@ -359,7 +359,7 @@ Si alguna URL no responde con 200 OK, el workflow:
 - Se marca como fallido (exit 1)
 - Envía un correo a un destinatario configurable con detalles del error
 
-✉ ## Notificación
+ ## ✉ Notificación
    - Se envía un correo a `$REPO_OWNER_MAIL` con resultados del pipeline y link al despliegue
 
  ![Notifs](/IMG/Notifs.png)
