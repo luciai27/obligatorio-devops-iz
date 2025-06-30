@@ -483,7 +483,7 @@ Las configuraciones de las **branch protection rules** son las siguientes:
 
 - Para la IaC no se utilizaron módulos, pero se utilizó el mismo contenido del main.tf con variables diferenciadas por ambiente, lo que facilitó la realización de cambios y nos otorgó flexibilidad.
 
-- No se utilizó la estrategia de Feature Branch para el desarrollo de la infraestructura dado que se creó en el mismo repositorio que la aplicación y no nos restuló práctico utilizar esta estrategia durante el transcurso del proyeto.
+- No se utilizó la estrategia de Feature Branch para el desarrollo de la infraestructura dado que se creó en el mismo repositorio que la aplicación y no nos resultó práctico utilizar esta estrategia durante el transcurso del proyeto.
 
 - El testing de carga se aplicó como Quality Gate, es decir, si el mismo falla, se cancela el resto del pipeline. El failure criteria se estableció en menos de "100% success", o sea, mientras nada falle, seguirá el pipeline.
 
