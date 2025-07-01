@@ -187,7 +187,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Email notification de lambda result
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v6
         with:
           server_address: smtp.gmail.com
           server_port: 587
@@ -207,7 +207,7 @@ jobs:
 
       - name: Email notification
         if: success()
-        uses: dawidd6/action-send-mail@v3
+        uses: dawidd6/action-send-mail@v6
         with:
           server_address: smtp.gmail.com
           server_port: 587
